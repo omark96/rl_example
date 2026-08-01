@@ -1,0 +1,71 @@
+import MapNode = "std.um"
+
+type (
+	MapNodeChildren = map[str]MapNode
+
+	ArrNode = struct {
+	    name: str
+	    children: []ArrNode
+	}	
+
+	MapNode = struct {
+    	name: str
+    	children: MapNodeChildren
+	}
+)
+
+fn test1() {
+	arrtree := ArrNode{
+		"node1",
+		{
+			{
+				"node11",
+				{}
+			},
+			{
+				"node12",
+				{}
+			}			
+		}
+	}
+
+	arrtree.children[1].children = append(arrtree.children[1].children, {"node121", {}})
+
+	maptree := MapNode{
+		"node1",
+		{
+			"child1": {
+				"node11",
+				{}
+			},
+			"child2": {
+				"node12",
+				{}
+			}			
+		}
+	}
+
+	maptree.children["child2"].children["child21"] = {"node121", {}}
+
+	printf("%llv\n\n%llv\n", arrtree, maptree)
+}
+
+type T = struct {
+    data: int
+    children: []T
+}
+
+fn test2() {
+    a := T{42, {T{data: 13}, T{data: 14}}}
+    b := T{42, {T{data: 13}, T{data: 14}}}
+    MapNode::assert(a == b)
+}
+
+fn test*() {
+	test1()
+	test2()
+}
+
+fn main() {
+	test()
+}

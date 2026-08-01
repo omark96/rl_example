@@ -1,0 +1,48 @@
+import (
+    "rl.um"
+    "core.um"
+)
+
+type Dot = struct {
+    pos: [2]int32;
+}
+
+type State = struct {
+    pos: [2]int32;
+    clicks: uint;
+    dots: []Dot;
+    some_real32: real32;
+    some_real: real;
+}
+
+fn registerHotReloading(state: ^State)
+
+var state: State
+
+fn init() {
+    registerHotReloading(&state)
+    state = {{50, 50}, 0, {}, 0.3, 0.5}
+}
+
+fn update() {
+    rl::drawText("Hello from Umka", 200, 200, 40, {200, 200, 200, 255})
+    rl::drawRectangle(state.pos[0], state.pos[1], 1000, 100, {200, 20, 200, 255})
+    for i, dot in state.dots {
+        rl::drawRectangle(dot.pos[0], dot.pos[1], 5, 5, {30, 30, 30, 255})
+    }
+    rl::drawText(sprintf("Clicks: %d", state.clicks), 10, 100, 20, {220, 240, 200, 255})
+    rl::drawText(sprintf("some_real: %v", state.some_real), 10, 140, 20, {20, 20, 20, 255})
+    rl::drawText(sprintf("some_real32: %v", state.some_real32), 10, 180, 20, {20, 20, 20, 255})
+    if rl::isMouseButtonPressed(.MOUSE_BUTTON_LEFT){
+        x := rl::getMouseX()
+        y := rl::getMouseY()
+        state.pos = {x, y}
+        state.clicks += 1
+        state.some_real += 0.123
+        state.some_real32 += 0.321
+        dot := Dot {{x, y}}
+        state.dots = append(state.dots, dot)
+    }
+}
+
+

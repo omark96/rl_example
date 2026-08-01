@@ -1,0 +1,139 @@
+type Writer = struct {
+    data: []uint8;
+}
+
+fn(w: ^Writer) write_uint8(val: uint8) {
+    w.data = append(w.data, val)
+}
+
+fn(w: ^Writer) write_int8(val: int8) {
+    w.write_uint8(^uint8(&val)^)
+}
+
+fn(w: ^Writer) write_uint32(val: uint32) {
+    for i := 3; i >= 0; i-- {
+        w.data = append(w.data, (val >> (i * 8)) & 0xFF)
+    }
+}
+
+fn(w: ^Writer) write_int32(val: int32) {
+    w.write_uint32(^uint32(&val)^)
+}
+
+fn(w: ^Writer) write_uint(val: uint) {
+    for i := 7; i >= 0; i-- {
+        w.data = append(w.data, (val >> (i * 8)) & 0xFF)
+    }
+}
+
+fn(w: ^Writer) write_int(val: int) {
+    w.write_uint(^uint(&val)^)
+}
+
+fn(w: ^Writer) write_bool(val: bool) {
+    w.write_uint8(uint8(val))
+}
+
+fn(w: ^Writer) write_real32(val: real32) {
+    w.write_uint32(^uint32(&val)^)
+}
+
+fn(w: ^Writer) write_real(val: real) {
+    w.write_uint(^uint(&val)^)
+}
+
+
+type Reader = struct {
+    data: []uint8;
+    pos: int;
+}
+
+fn(r: ^Reader) read_uint8() : uint8 {
+    val := r.data[r.pos]
+    r.pos += 1;
+    return val;
+}
+
+fn(r: ^Reader) read_int8(): int8 {
+    val := r.read_uint8()
+    return ^int8(&val)^
+}
+
+fn(r: ^Reader) read_uint32() : uint32 {
+    var val :uint32 = 0
+    for i := 0; i < 4; i++ {
+        val = val << 8
+        val = val | r.data[r.pos]
+        r.pos++
+    }
+    return val
+}
+
+fn(r: ^Reader) read_int32() : int32 {
+    val :=r.read_uint32()
+    return ^int32(&val)^
+}
+
+fn(r: ^Reader) read_uint(): uint {
+    var val: uint = 0
+    for i := 0; i < 8; i++ {
+        val = val << 8
+        val = val | r.data[r.pos]
+        r.pos++
+    }
+    return val
+}
+
+fn(r: ^Reader) read_int(): int {
+    val := r.read_uint()
+    return ^int(&val)^
+}
+
+fn(r: ^Reader) read_bool() : bool {
+    val := r.read_uint8()
+    return bool(val)
+}
+
+fn(r: ^Reader) read_real32(): real32 {
+    val := r.read_uint32()
+    return ^real32(&val)^
+}
+
+fn(r: ^Reader) read_real(): real {
+    val := r.read_uint()
+    return ^real(&val)^
+}
+
+fn serialize(): []uint8 {
+    var w: Writer
+    w.write_int32(state.pos[0])
+    w.write_int32(state.pos[1])
+    w.write_int(state.clicks)
+    w.write_int(len(state.dots))
+    for i, dot in state.dots {
+        w.write_int32(dot.pos[0])
+        w.write_int32(dot.pos[1])
+    }
+    w.write_real32(state.some_real32)
+    w.write_real(state.some_real)
+    printf("%v\n", w.data)
+    return w.data
+}
+
+fn deserialize(data: []uint8) {
+    state = State{}
+    var r: Reader
+    r.data = data
+
+    state.pos[0] = r.read_int32()
+    state.pos[1] = r.read_int32()
+    state.clicks = r.read_int()
+    state_dots_len := r.read_int()
+    state.dots = make([]Dot, state_dots_len)
+    for i in state.dots {
+        state.dots[i].pos[0] = r.read_int32()
+        state.dots[i].pos[1] = r.read_int32()
+    }
+    state.some_real32 = r.read_real32()
+    state.some_real = r.read_real()
+}
