@@ -8,36 +8,74 @@ type Dot = struct {
 }
 
 type State = struct {
-    pos: [2]int32;
-    clicks: uint;
+    a: bool;
+    b: bool;
+    c: bool;
+    reloads: uint;
+    pos: [4]int32;
     dots: []Dot;
     some_real32: real32;
     some_real: real;
+    some_string: str;
+    some_pointer: ^int32;
+    some_map: map[int]bool
 }
-
-fn registerHotReloading(state: ^State)
 
 var state: State
 
+fn hotReload(): ^State{
+    state.a = state.b
+    state.b = state.c
+    state.c = !state.c
+    state.some_string += "a"
+    state.reloads += 1
+    state.some_pointer^ += 1
+    state.some_map[67] = !state.some_map[67]
+    return &state
+}
+
 fn init() {
-    registerHotReloading(&state)
-    state = {{50, 50}, 0, {}, 0.3, 0.5}
+    some_pointer := new(int32, 5)
+    state = {
+        false, 
+        true, 
+        true, 
+        0, 
+        {50, 50, 50, 50}, 
+        {},
+        0.3, 
+        0.5, 
+        "a",
+        some_pointer,
+        {
+            67: false, 
+            69: true,
+            420: false,
+        }
+    }
+    printf("Init from umka\n")
 }
 
 fn update() {
     rl::drawText("Hello from Umka", 200, 200, 40, {200, 200, 200, 255})
-    rl::drawRectangle(state.pos[0], state.pos[1], 1000, 100, {200, 20, 200, 255})
+    rl::drawRectangle(state.pos[0], state.pos[1], 1000, 100, {20, 20, 200, 255})
     for i, dot in state.dots {
         rl::drawRectangle(dot.pos[0], dot.pos[1], 5, 5, {30, 30, 30, 255})
     }
-    rl::drawText(sprintf("Clicks: %d", state.clicks), 10, 100, 20, {220, 240, 200, 255})
+    rl::drawText(sprintf("Reloads: %d", state.reloads), 10, 100, 20, {220, 240, 200, 255})
     rl::drawText(sprintf("some_real: %v", state.some_real), 10, 140, 20, {20, 20, 20, 255})
     rl::drawText(sprintf("some_real32: %v", state.some_real32), 10, 180, 20, {20, 20, 20, 255})
+    rl::drawText(sprintf("Some string: %s", state.some_string), 10, 220, 20, {20, 20, 20, 255})
+    rl::drawText(sprintf("Some pointer: %v", state.some_pointer^), 10, 260, 20, {20, 20, 20, 255})
+    i := 0
+    for key, value in state.some_map {
+        rl::drawText(sprintf("%v: %v", key, value), 600, i * 20, 20, {20, 20, 20, 255})
+        i += 1
+    }
     if rl::isMouseButtonPressed(.MOUSE_BUTTON_LEFT){
         x := rl::getMouseX()
         y := rl::getMouseY()
-        state.pos = {x, y}
-        state.clicks += 1
+        state.pos = {x, y, y, x}
         state.some_real += 0.123
         state.some_real32 += 0.321
         dot := Dot {{x, y}}
