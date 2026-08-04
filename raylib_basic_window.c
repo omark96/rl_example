@@ -124,6 +124,34 @@ void freeGame(GameApi *game)
     *game = (GameApi){0};
 }
 
+void transfer(Umka *dstUmka, void *dst, const UmkaType *dstType, Umka *srcUmka, void *src, const UmkaType *srcType);
+
+static MapNode *transferMapNode(Umka *dstUmka, const UmkaType *dstKeyType, const UmkaType *dstItemType,
+                                Umka *srcUmka, MapNode *srcNode, const UmkaType *srcKeyType, const UmkaType *srcItemType)
+{
+    if (!srcNode)
+    {
+        return NULL;
+    }
+
+    MapNode *dstNode = (MapNode *)umkaAllocData(dstUmka, sizeof(MapNode), NULL);
+    dstNode->len = srcNode->len;
+    dstNode->priority = srcNode->priority;
+
+    transfer(dstUmka, &dstNode->key, dstKeyType,
+             srcUmka, &srcNode->key, srcKeyType);
+
+    transfer(dstUmka, &dstNode->data, dstItemType,
+             srcUmka, &srcNode->data, srcItemType);
+
+    dstNode->left = transferMapNode(dstUmka, dstKeyType, dstItemType,
+                                    srcUmka, srcNode->left, srcKeyType, srcItemType);
+    dstNode->right = transferMapNode(dstUmka, dstKeyType, dstItemType,
+                                     srcUmka, srcNode->right, srcKeyType, srcItemType);
+
+    return dstNode;
+}
+
 void transfer(Umka *dstUmka, void *dst, const UmkaType *dstType, Umka *srcUmka, void *src, const UmkaType *srcType)
 {
     if (srcType->kind != dstType->kind)
@@ -173,9 +201,6 @@ void transfer(Umka *dstUmka, void *dst, const UmkaType *dstType, Umka *srcUmka, 
         const UmkaType *srcBase = umkaGetBaseType(srcType);
         const UmkaType *dstBase = umkaGetBaseType(dstType);
 
-        if (srcBase->kind != dstBase->kind)
-            break;
-
         const int count = srcType->numItems < dstType->numItems
                               ? srcType->numItems
                               : dstType->numItems;
@@ -184,11 +209,12 @@ void transfer(Umka *dstUmka, void *dst, const UmkaType *dstType, Umka *srcUmka, 
         const int64_t dstStride = dstBase->size;
 
         for (int i = 0; i < count; i++)
+        {
             transfer(dstUmka, dst + i * dstStride, dstBase,
                      srcUmka, src + i * srcStride, srcBase);
+        }
         break;
     }
-
     case TYPE_DYNARRAY:
     {
         typedef UmkaDynArray(void) DynArray;
@@ -203,8 +229,10 @@ void transfer(Umka *dstUmka, void *dst, const UmkaType *dstType, Umka *srcUmka, 
         const UmkaType *dstBase = umkaGetBaseType(dstType);
 
         for (int i = 0; i < len; i++)
-            transfer(dstUmka, (void *)dstArr->data + i * dstArr->itemSize, dstBase,
-                     srcUmka, (void *)srcArr->data + i * srcArr->itemSize, srcBase);
+        {
+            transfer(dstUmka, dstArr->data + i * dstArr->itemSize, dstBase,
+                     srcUmka, srcArr->data + i * srcArr->itemSize, srcBase);
+        }
         break;
     }
     case TYPE_STR:
@@ -213,7 +241,9 @@ void transfer(Umka *dstUmka, void *dst, const UmkaType *dstType, Umka *srcUmka, 
         char **dstSlot = (char **)dst;
 
         if (*dstSlot)
+        {
             umkaDecRef(dstUmka, *dstSlot);
+        }
 
         *dstSlot = srcStr ? umkaMakeStr(dstUmka, srcStr) : NULL;
         break;
@@ -249,39 +279,48 @@ void transfer(Umka *dstUmka, void *dst, const UmkaType *dstType, Umka *srcUmka, 
 
         *dstSlot = newObj;
 
-        transfer(dstUmka, (void *)newObj, dstBase,
-                 srcUmka, (void *)srcPtr, srcBase);
-
+        transfer(dstUmka, newObj, dstBase,
+                 srcUmka, srcPtr, srcBase);
         break;
     }
     case TYPE_MAP:
     {
-        // WIP: Write a function for recursively copying over nodes from one struct to another.
+        UmkaMap *srcMap = (UmkaMap *)src;
+        UmkaMap *dstMap = (UmkaMap *)dst;
+
         const UmkaType *srcKeyType = srcType->base->field[2]->type;
-        const UmkaType *srcDataType = srcType->base->field[3]->type;
+        const UmkaType *srcItemType = srcType->base->field[3]->type;
         const UmkaType *srcKeyBaseType = umkaGetBaseType(srcKeyType);
-        const UmkaType *srcDataBaseType = umkaGetBaseType(srcDataType);
+        const UmkaType *srcItemBaseType = umkaGetBaseType(srcItemType);
 
         const UmkaType *dstKeyType = dstType->base->field[2]->type;
-        const UmkaType *dstDataType = dstType->base->field[3]->type;
+        const UmkaType *dstItemType = dstType->base->field[3]->type;
         const UmkaType *dstKeyBaseType = umkaGetBaseType(dstKeyType);
-        const UmkaType *dstDataBaseType = umkaGetBaseType(dstDataType);
+        const UmkaType *dstItemBaseType = umkaGetBaseType(dstItemType);
 
-        if (srcKeyBaseType->kind != dstKeyBaseType->kind || srcDataBaseType->kind != dstDataBaseType->kind)
+        if (srcKeyBaseType->kind != dstKeyBaseType->kind || srcItemBaseType->kind != dstItemBaseType->kind)
         {
             break;
         }
 
-        UmkaMap *srcMap = src;
-        UmkaMap *dstMap = dst;
-        if (!dstMap)
+        if (!dstMap->type)
         {
+            dstMap->type = dstType;
         }
-        // dstMap->type = dstType;
 
-        int a = 1;
+        MapNode *srcRoot = srcMap->root;
+        MapNode *oldDstRoot = dstMap->root;
+
+        dstMap->root = transferMapNode(dstUmka, dstKeyType, dstItemType,
+                                       srcUmka, srcRoot, srcKeyType, srcItemType);
+        if (oldDstRoot)
+        {
+            umkaDecRef(dstUmka, oldDstRoot);
+        }
         break;
     }
+    default:
+        break;
     }
 }
 
@@ -309,7 +348,6 @@ int main()
     InitWindow(screenWidth, screenHeight, "_dev raylib basic window");
     SetTargetFPS(60);
     umkaCall(game.umka, &game.init);
-    // umkaCall(game.umka, &game.serialize);
 
     while (!WindowShouldClose())
     {
@@ -333,66 +371,3 @@ int main()
 
     return 0;
 }
-
-/*
-generate_serializer(name, type, buf):
-    if basic type:
-        generate how to serialize
-    if array:
-        write len
-        write for loop
-        generate_serializer(base_type, buf)
-    if struct
-
-
-
-    type State = struct {
-    a: int32;
-    b: bool;
-}
-
-var state: State
-
-fn serialize(state: State): []uint8 {
-    var data: []uint8
-
-    var buf: [8]uint8
-    a := state.a
-    for i := 0; i < 4; i += 1 {
-        buf[3 - i] = a & 0xFF
-        a = a >> 8
-    }
-    for i := 0; i < 4; i += 1 {
-        data = append(data, buf[i])
-    }
-    if state.b {
-        data = append(data, 1)
-    } else {
-        data = append(data, 0)
-    }
-    printf("%v\n", data)
-    return data
-}
-
-fn deserialize(data: []uint8) : State {
-    state := State{}
-    count := 0
-    for i := 0; i < 4; i++ {
-        state.a = state.a << 8
-        state.a = state.a + data[count + i]
-    }
-    count += 4
-    state.b = bool(data[count])
-    count++
-    return state
-}
-
-
-fn main() {
-    state.a = (1 << 8) + (1 << 6) + 1
-    state.b = true
-    data := serialize(state)
-    newState := deserialize(data)
-    printf("%v\n%v\n", state, newState)
-}
-*/

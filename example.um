@@ -7,6 +7,13 @@ type Dot = struct {
     pos: [2]int32;
 }
 
+type Some_Enum = enum {
+    A;
+    B;
+    C;
+    D;
+}
+
 type State = struct {
     a: bool;
     b: bool;
@@ -18,10 +25,11 @@ type State = struct {
     some_real: real;
     some_string: str;
     some_pointer: ^int32;
-    some_map: map[int]bool
+    some_map: map[uint]bool;
+    some_enum: Some_Enum;
 }
 
-var state: State
+var state: State = {}
 
 fn hotReload(): ^State{
     state.a = state.b
@@ -30,27 +38,31 @@ fn hotReload(): ^State{
     state.some_string += "a"
     state.reloads += 1
     state.some_pointer^ += 1
-    state.some_map[67] = !state.some_map[67]
+    state.some_map[state.reloads] = state.reloads % 3 == 0
+    state.some_enum = Some_Enum((int(state.some_enum) + 1) % 4)
     return &state
 }
 
 fn init() {
     some_pointer := new(int32, 5)
-    state = {
-        false, 
-        true, 
-        true, 
-        0, 
-        {50, 50, 50, 50}, 
-        {},
-        0.3, 
-        0.5, 
-        "a",
-        some_pointer,
-        {
-            67: false, 
-            69: true,
-            420: false,
+    if true {
+        state = {
+            false, 
+            true, 
+            true, 
+            0, 
+            {50, 50, 50, 50}, 
+            {},
+            0.3, 
+            0.5, 
+            "a",
+            some_pointer,
+            {
+                67: false, 
+                69: true,
+                420: false,
+            },
+            .A
         }
     }
     printf("Init from umka\n")
@@ -67,6 +79,7 @@ fn update() {
     rl::drawText(sprintf("some_real32: %v", state.some_real32), 10, 180, 20, {20, 20, 20, 255})
     rl::drawText(sprintf("Some string: %s", state.some_string), 10, 220, 20, {20, 20, 20, 255})
     rl::drawText(sprintf("Some pointer: %v", state.some_pointer^), 10, 260, 20, {20, 20, 20, 255})
+    rl::drawText(sprintf("Some enum: %v", state.some_enum), 10, 300, 20, {20, 20, 20, 255})
     i := 0
     for key, value in state.some_map {
         rl::drawText(sprintf("%v: %v", key, value), 600, i * 20, 20, {20, 20, 20, 255})
