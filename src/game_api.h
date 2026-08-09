@@ -1,4 +1,5 @@
 #pragma once
+#include "raylib.h"
 #include "umka_full.h"
 
 #define H_TYPE_SHIFT 58
@@ -13,17 +14,18 @@
 #define H_SLOT_MASK 0xFFFFULL
 #define H_SGEN_MASK 0x7FFFFFFFULL
 
-#define MAX_GAMES 128
 #define HANDLE_NULL 0ULL
 
-typedef struct GameApi {
-    char *name;
-    Umka *umka;
-    bool active;
-    UmkaFuncContext update;
-    UmkaFuncContext init;
-    UmkaFuncContext hotReload;
-} GameApi;
+#define MAX_GAMES 128
+#define MAX_RENDER_TEXTURES 8
+#define MAX_TEXTURES 256
+#define MAX_MODELS 256
+#define MAX_SOUNDS 256
+#define MAX_SHADERS 32
+#define MAX_2D_WORLDS 3
+#define MAX_3D_WORLDS 3
+#define MAX_2D_BODIES 10000
+#define MAX_3D_BODIES 10000
 
 typedef uint64_t Handle;
 
@@ -65,6 +67,83 @@ static inline GameRef handleGameRef(Handle h) {
 }
 
 static inline Handle makeGameHandle(GameRef g) { return makeHandle(RES_GAME, g.id, g.gen, 0, 0); }
+
+typedef struct TextureSlot {
+    Texture texture;
+    uint32_t generation;
+} TextureSlot;
+
+typedef struct RenderTextureSlot {
+    RenderTexture renderTexture;
+    uint32_t generation;
+} RenderTextureSlot;
+
+typedef struct ModelSlot {
+    Model model;
+    uint32_t generation;
+} ModelSlot;
+
+typedef struct SoundSlot {
+    Sound sound;
+    uint32_t generation;
+} SoundSlot;
+
+typedef struct ShaderSlot {
+    Shader shader;
+    uint32_t generation;
+} ShaderSlot;
+
+typedef uint64_t World2D;
+typedef uint64_t Body2D;
+
+typedef struct World2DSlot {
+    World2D world2D;
+    uint32_t generation;
+} World2DSlot;
+
+typedef struct Body2DSlot {
+    Body2D Body2D;
+    uint32_t generation;
+} Body2DSlot;
+
+typedef uint64_t World3D;
+typedef uint64_t Body3D;
+
+typedef struct World3DSlot {
+    World3D world3D;
+    uint32_t generation;
+} World3DSlot;
+
+typedef struct Body3DSlot {
+    Body3D Body3D;
+    uint32_t generation;
+} Body3DSlot;
+
+typedef struct GameApi {
+    char *name;
+    Umka *umka;
+    bool active;
+
+    RenderTextureSlot renderTextures[MAX_RENDER_TEXTURES];
+    TextureSlot textures[MAX_TEXTURES];
+    ModelSlot models[MAX_MODELS];
+    SoundSlot sounds[MAX_SOUNDS];
+    ShaderSlot shaders[MAX_SHADERS];
+    World2DSlot world2Ds[MAX_2D_WORLDS];
+    World3DSlot world3Ds[MAX_3D_WORLDS];
+    Body2DSlot body2Ds[MAX_2D_BODIES];
+    Body3DSlot body3Ds[MAX_3D_BODIES];
+
+    UmkaFuncContext update;
+    UmkaFuncContext init;
+    UmkaFuncContext hotReload;
+} GameApi;
+
+// TODO: Refactor to using static array of GameSlot instead.
+typedef struct GameSlot {
+    GameApi game;
+    uint32_t generation;
+} GameSlot;
 
 extern GameApi *games[MAX_GAMES];
 
