@@ -60,6 +60,12 @@ int main() {
                 active = 0;
             } else if (IsKeyPressed(KEY_TWO)) {
                 active = 1;
+            } else if (IsKeyPressed(KEY_THREE)) {
+                active = 2;
+            } else if (IsKeyPressed(KEY_FOUR)) {
+                active = 3;
+            } else if (IsKeyPressed(KEY_FIVE)) {
+                active = 4;
             }
         }
         EndDrawing();
