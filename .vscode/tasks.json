@@ -1,0 +1,34 @@
+{
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "build debug exe",
+            "command": "C:/bin/w64devkit/bin/gcc.exe",
+            "args": [
+                "-fdiagnostics-color=always",
+                "-std=c23",
+                "-g",
+                "-o",
+                "raylib_basic_window_debug.exe",
+                "raylib_basic_window.c",
+                "-Iinclude",
+                "-Llib",
+                "-lraylib",
+                "-lgdi32",
+                "-lwinmm",
+                "-lumka",
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+        }
+    ],
+    "version": "2.0.0"
+}

@@ -1,0 +1,4 @@
+type Color* = struct {r, g, b, a: uint8}
+
+fn drawText*(text: str, posX, posY, fontSize: int32, color: Color)
+fn drawRectangle*(posX, posY, width, height: int32, color: Color)

@@ -1,0 +1,10 @@
+BasedOnStyle: LLVM
+ColumnLimit: 100
+BreakBeforeBinaryOperators: All
+IndentWidth: 4
+AlignOperands: Align
+AlwaysBreakBeforeMultilineStrings: true
+BraceWrapping:
+  AfterEnum: true
+  AfterStruct: true
+AllowShortEnumsOnASingleLine: false

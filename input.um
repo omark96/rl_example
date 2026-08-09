@@ -1,5 +1,3 @@
-type Color* = struct {r, g, b, a: uint8}
-
 type MouseButton* = enum {
     MOUSE_BUTTON_LEFT    = 0;
     MOUSE_BUTTON_RIGHT   = 1;
@@ -10,8 +8,6 @@ type MouseButton* = enum {
     MOUSE_BUTTON_BACK    = 6;
 }
 
-fn drawText*(text: str, posX, posY, fontSize: int32, color: Color)
-fn drawRectangle*(posX, posY, width, height: int32, color: Color)
 fn isMouseButtonPressed*(button: MouseButton): bool
 fn getMouseX*(): int32
 fn getMouseY*(): int32
