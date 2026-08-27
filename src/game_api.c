@@ -3,7 +3,7 @@
 #include "gfx.c"
 #include "input.c"
 
-void initGame(GameApi *gameApi, char *name) {
+void initGame(GameApi *gameApi, char *name, uint8_t slot, uint8_t gen) {
     gameApi->umka = umkaAlloc();
     const UmkaType *stateType;
     char gamePath[PATH_MAX];
@@ -32,7 +32,7 @@ void initGame(GameApi *gameApi, char *name) {
     umkaGetFunc(gameApi->umka, NULL, "init", &gameApi->init);
     umkaGetFunc(gameApi->umka, NULL, "hotReload", &gameApi->hotReload);
 
-    texturePoolInit(&gameApi->textures, 0, 0);
+    texturePoolInit(&gameApi->textures, slot, gen);
 }
 void onWarning(UmkaError *err) {
     fprintf(stderr, "%s (%s:%d): %s\n", err->fnName, err->fileName, err->line, err->msg);
@@ -231,4 +231,5 @@ void hotReload(GameApi *curr, GameApi *next) {
         = umkaGetResultType(next->hotReload.params, next->hotReload.result)->base;
 
     transfer(next->umka, nextState, nextType, curr->umka, currState, currType);
+    next->textures = curr->textures;
 }

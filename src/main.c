@@ -33,7 +33,7 @@ int main() {
             active = loadScreen;
         }
         games[i].game = (GameApi){0};
-        initGame(&games[i].game, gamePaths.paths[i] + 6);
+        initGame(&games[i].game, gamePaths.paths[i] + 6, i, 1);
         umkaCall(games[i].game.umka, &games[i].game.init);
     }
 
@@ -45,7 +45,7 @@ int main() {
             umkaCall(game.umka, &game.update);
             if (IsKeyPressed(KEY_F5)) {
                 GameApi next;
-                initGame(&next, game.name);
+                initGame(&next, game.name, active, 1);
                 hotReload(&game, &next);
                 freeGame(&game);
                 games[active].game = next;
