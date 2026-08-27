@@ -17,7 +17,7 @@
 
 #define HANDLE_NULL 0ULL
 
-#define MAX_GAMES 128
+#define MAX_GAMES 10
 #define MAX_TEXTURES 256
 
 typedef uint64_t Handle;
@@ -168,17 +168,37 @@ typedef struct GameSlot {
     uint32_t generation;
 } GameSlot;
 
-extern GameApi *games[MAX_GAMES];
+extern GameSlot games[MAX_GAMES];
 
-static inline GameApi *gameFromRef(GameRef g) { GameApi *game = games[g.id]; }
-
-GameApi *gameFromUmka(Umka *umka) {
+void gamesInit() {
     for (int i = 0; i < MAX_GAMES; i++) {
-        if (games[i] == NULL) {
+        games[i] = (GameSlot){0};
+        games[i].generation = 1;
+    }
+}
+
+void initGame(GameApi *gameApi, char *name);
+
+uint8_t gameAdd(char *name) {
+    for (uint8_t i = 1; 1 < MAX_GAMES; i++) {
+        if (games[i].game.umka != NULL)
             continue;
-        }
-        if (games[i]->umka == umka) {
-            return games[i];
+
+        GameApi game = {0};
+        initGame(&game, name);
+        texturePoolInit(&game.textures, i, games[i].generation);
+        games[i].game = game;
+        return i;
+    }
+    return 0;
+}
+
+static inline GameApi *gameFromRef(GameRef g) { GameApi *game = &games[g.id].game; }
+
+GameSlot *slotFromUmka(Umka *umka) {
+    for (uint8_t i = 1; i < MAX_GAMES; i++) {
+        if (games[i].game.umka == umka) {
+            return &games[i];
         }
     }
     return NULL;

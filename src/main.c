@@ -5,13 +5,13 @@
 #include "stdlib.h"
 #include "umka_full.h"
 
-GameApi *games[MAX_GAMES];
-
-int gameCount = 0;
-int loadScreen = 0;
-int active = 0;
+GameSlot games[MAX_GAMES];
 
 int main() {
+    int gameCount = 0;
+    int loadScreen = 0;
+    int active = 0;
+
     GameApi game;
 
     const int screenWidth = 800;
@@ -24,37 +24,38 @@ int main() {
 
     gameCount = gamePaths.count;
     printf("Number of games: %d\n", gamePaths.count);
-    printf("First game: %s", gamePaths.paths[0] + 6);
+    printf("First game: %s\n", gamePaths.paths[0] + 6);
 
     for (int i = 0; i < gameCount; i++) {
         char *gameName = gamePaths.paths[i] + 6;
-        if (gameName == "loadScreen") {
+        if (strcmp(gameName, "loadScreen") == 0) {
             loadScreen = i;
             active = loadScreen;
         }
-
-        games[i] = malloc(sizeof(GameApi));
-        initGame(games[i], gamePaths.paths[i] + 6);
+        games[i].game = (GameApi){0};
+        initGame(&games[i].game, gamePaths.paths[i] + 6);
+        umkaCall(games[i].game.umka, &games[i].game.init);
     }
 
     while (!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(GRAY);
         if (active >= 0) {
-            game = *games[active];
+            game = games[active].game;
             umkaCall(game.umka, &game.update);
             if (IsKeyPressed(KEY_F5)) {
                 GameApi next;
                 initGame(&next, game.name);
                 hotReload(&game, &next);
                 freeGame(&game);
-                *games[active] = next;
+                games[active].game = next;
             } else if (IsKeyPressed(KEY_P)) {
                 active = -1;
             }
         } else {
             for (int i = 0; i < gameCount; i++) {
-                DrawText(TextFormat("%d: %s", i + 1, games[i]->name), 50, 50 + 25 * i, 20, BLACK);
+                DrawText(TextFormat("%d: %s", i + 1, games[i].game.name), 50, 50 + 25 * i, 20,
+                         BLACK);
             }
             if (IsKeyPressed(KEY_ONE)) {
                 active = 0;
@@ -73,7 +74,7 @@ int main() {
     CloseWindow();
 
     for (int i = 0; i < gameCount; i++) {
-        freeGame(games[i]);
+        freeGame(&games[i].game);
     }
 
     return 0;

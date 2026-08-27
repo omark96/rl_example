@@ -21,18 +21,18 @@ void initGame(GameApi *gameApi, char *name) {
         umkaOk = umkaCompile(gameApi->umka);
     }
 
-    if (umkaOk) {
-        printf("Umka initialized\n");
-        umkaGetFunc(gameApi->umka, NULL, "update", &gameApi->update);
-        umkaGetFunc(gameApi->umka, NULL, "init", &gameApi->init);
-        umkaGetFunc(gameApi->umka, NULL, "hotReload", &gameApi->hotReload);
-    } else {
+    if (!umkaOk) {
         UmkaError *error = umkaGetError(gameApi->umka);
         printf("Umka error %s (%d, %d): %s\n", error->fileName, error->line, error->pos,
                error->msg);
+        return;
     }
+    printf("Umka initialized\n");
+    umkaGetFunc(gameApi->umka, NULL, "update", &gameApi->update);
+    umkaGetFunc(gameApi->umka, NULL, "init", &gameApi->init);
+    umkaGetFunc(gameApi->umka, NULL, "hotReload", &gameApi->hotReload);
 
-    umkaCall(gameApi->umka, &gameApi->init);
+    texturePoolInit(&gameApi->textures, 0, 0);
 }
 void onWarning(UmkaError *err) {
     fprintf(stderr, "%s (%s:%d): %s\n", err->fnName, err->fileName, err->line, err->msg);

@@ -38,7 +38,6 @@ fn hotReload(): ^State{
     state.c = !state.c
     state.some_string += "a"
     state.reloads += 1
-    state.some_pointer^ += 1
     state.some_map[state.reloads] = state.reloads % 3 == 0
     state.some_enum = Some_Enum((int(state.some_enum) + 1) % 4)
     return &state

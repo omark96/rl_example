@@ -70,7 +70,7 @@ fn init() {
 }
 
 fn update() {
-    gfx::drawText("Hello from Example2", 200, 200, 40, {200, 200, 200, 255})
+    gfx::drawText("Hello from Example5", 200, 200, 40, {200, 200, 200, 255})
     gfx::drawRectangle(state.pos[0], state.pos[1], 1000, 100, {20, 20, 200, 255})
     for i, dot in state.dots {
         gfx::drawRectangle(dot.pos[0], dot.pos[1], 5, 5, {30, 30, 30, 255})

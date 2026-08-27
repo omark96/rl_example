@@ -33,12 +33,16 @@ type State = struct {
 var state: State = {}
 
 fn hotReload(): ^State{
+    printf("Some int value: %d\n", state.reloads)
     state.a = state.b
     state.b = state.c
     state.c = !state.c
     state.some_string += "a"
     state.reloads += 1
-    state.some_pointer^ += 1
+    // if state.some_pointer == null {
+    //     state.some_pointer = new(int32)
+    // }
+    // state.some_pointer^ += 1
     state.some_map[state.reloads] = state.reloads % 3 == 0
     state.some_enum = Some_Enum((int(state.some_enum) + 1) % 4)
     return &state
@@ -94,6 +98,7 @@ fn update() {
         state.some_real32 += 0.321
         dot := Dot {{x, y}}
         state.dots = append(state.dots, dot)
+        state.some_pointer^ += 1
     }
 }
 
