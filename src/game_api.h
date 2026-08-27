@@ -99,6 +99,8 @@ Handle texturePoolAdd(TexturePool *pool, Texture item) {
             bool ok = texturePoolGrow(pool);
             assert(ok);
         }
+        slotId = pool->count;
+        pool->items[slotId].generation = 1;
     }
 
     TextureSlot *slot = &pool->items[slotId];
@@ -142,13 +144,13 @@ bool texturePoolRemove(TexturePool *pool, Handle handle) {
     return true;
 }
 
-// Texture *texturePoolGet(TexturePool *pool, Handle handle) {
-//     uint16_t slotId;
-//     if (!texturePoolResolve(pool, handle, &slotId)) {
-//         return &pool->items[0];
-//     }
-//     return &pool->items[slotId];
-// }
+Texture *texturePoolGet(TexturePool *pool, Handle handle) {
+    uint16_t slotId;
+    if (!texturePoolResolve(pool, handle, &slotId)) {
+        return &pool->items[0].item;
+    }
+    return &pool->items[slotId].item;
+}
 
 typedef struct GameApi {
     char *name;
@@ -177,7 +179,7 @@ void gamesInit() {
     }
 }
 
-void initGame(GameApi *gameApi, char *name);
+void initGame(GameApi *gameApi, char *name, uint8_t slot, uint8_t gen);
 
 uint8_t gameAdd(char *name) {
     for (uint8_t i = 1; 1 < MAX_GAMES; i++) {
@@ -185,7 +187,7 @@ uint8_t gameAdd(char *name) {
             continue;
 
         GameApi game = {0};
-        initGame(&game, name);
+        initGame(&game, name, i, 1);
         texturePoolInit(&game.textures, i, games[i].generation);
         games[i].game = game;
         return i;
@@ -196,7 +198,7 @@ uint8_t gameAdd(char *name) {
 static inline GameApi *gameFromRef(GameRef g) { GameApi *game = &games[g.id].game; }
 
 GameSlot *slotFromUmka(Umka *umka) {
-    for (uint8_t i = 1; i < MAX_GAMES; i++) {
+    for (uint8_t i = 0; i < MAX_GAMES; i++) {
         if (games[i].game.umka == umka) {
             return &games[i];
         }

@@ -15,6 +15,13 @@ type Some_Enum = enum {
     D;
 }
 
+type Sprite = struct {
+    textureHandle: gfx::TextureHandle;
+    x: int32;
+    y: int32;
+    tint: gfx::Color;
+}
+
 type State = struct {
     a: bool;
     b: bool;
@@ -28,12 +35,13 @@ type State = struct {
     some_pointer: ^int32;
     some_map: map[uint]bool;
     some_enum: Some_Enum;
+    sprites: []Sprite;
+    some_counter: int;
 }
 
 var state: State = {}
 
 fn hotReload(): ^State{
-    printf("Some int value: %d\n", state.reloads)
     state.a = state.b
     state.b = state.c
     state.c = !state.c
@@ -67,15 +75,21 @@ fn init() {
                 69: true,
                 420: false,
             },
-            .A
+            .A,
+            {},
+            0
         }
     }
     printf("Init from umka\n")
 }
 
 fn update() {
-    gfx::drawText("Hello from Example1", 200, 200, 40, {200, 200, 200, 255})
+    state.some_counter += 1
     gfx::drawRectangle(state.pos[0], state.pos[1], 1000, 100, {20, 20, 200, 255})
+    for index, sprite in state.sprites {
+        gfx::drawTexture(sprite.textureHandle, sprite.x, sprite.y, sprite.tint)
+    }
+    gfx::drawText("Hello from Example1", 200, 200, 40, {200, 200, 200, 255})
     for i, dot in state.dots {
         gfx::drawRectangle(dot.pos[0], dot.pos[1], 5, 5, {30, 30, 30, 255})
     }
@@ -85,11 +99,14 @@ fn update() {
     gfx::drawText(sprintf("Some string: %s", state.some_string), 10, 220, 20, {20, 20, 20, 255})
     gfx::drawText(sprintf("Some pointer: %v", state.some_pointer^), 10, 260, 20, {20, 20, 20, 255})
     gfx::drawText(sprintf("Some enum: %v", state.some_enum), 10, 300, 20, {20, 20, 20, 255})
+    gfx::drawText(sprintf("Some counter: %v", state.some_counter), 10, 340, 20, {20, 20, 20, 255})
     i := 0
     for key, value in state.some_map {
         gfx::drawText(sprintf("%v: %v", key, value), 600, i * 20, 20, {20, 20, 20, 255})
         i += 1
     }
+
+
     if input::isMouseButtonPressed(.MOUSE_BUTTON_LEFT){
         x := input::getMouseX()
         y := input::getMouseY()
@@ -99,6 +116,10 @@ fn update() {
         dot := Dot {{x, y}}
         state.dots = append(state.dots, dot)
         state.some_pointer^ += 1
+        texture := gfx::loadTexture("games/example/assets/textures/smile.png")
+        // texture := gfx::loadTexture("games/example/assets/textures/frown.png")
+        sprite := Sprite{texture, x, y, {255, 255, 255, 255}}
+        state.sprites = append(state.sprites, sprite)
     }
 }
 
