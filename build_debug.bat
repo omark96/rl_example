@@ -1,1 +1,1 @@
-gcc -std=c23 -g -gdwarf-4 -O0 -o raylib_basic_window_debug.exe raylib_basic_window.c -Iinclude -Llib -lraylib -lgdi32 -lwinmm -lumka
+gcc -std=c23 -g -gdwarf-4 -O0 -o raylib_basic_window_debug.exe ./src/main.c -Iinclude -Llib -lraylib -lgdi32 -lwinmm -lumka
