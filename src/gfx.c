@@ -26,7 +26,7 @@ void gfxLoadTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
     Texture texture = LoadTexture(fileName);
     Handle handle = texturePoolAdd(&gameSlot->game.textures, texture);
     umkaGetResult(params, result)->intVal = handle;
-    printf("%d\n", handle);
+    printf("New texture handle: %llu\n", handle);
 }
 void gfxDrawTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
     Umka *umka = umkaGetInstance(result);
