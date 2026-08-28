@@ -113,6 +113,7 @@ bool POOL_FN(Remove)(POOL_TYPE *pool, Handle handle) {
     if (!POOL_FN(Resolve)(pool, handle, &slotId)) {
         return false;
     }
+    pool->count -= 1;
     SLOT_TYPE *slot = &pool->items[slotId];
     slot->generation += 1;
     slot->item = (T){0};

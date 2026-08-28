@@ -14,7 +14,7 @@
 #define POOL_MAX_CAP MAX_TEXTURES
 #include "pool.h"
 
-typedef struct GameApi {
+typedef struct Game {
     char *name;
     Umka *umka;
     bool active;
@@ -24,34 +24,35 @@ typedef struct GameApi {
     UmkaFuncContext update;
     UmkaFuncContext init;
     UmkaFuncContext hotReload;
-} GameApi;
+} Game;
 
-// TODO: Refactor to using static array of GameSlot instead.
-typedef struct GameSlot {
-    GameApi game;
-    uint32_t generation;
-} GameSlot;
+#define T Game
+#define F_PREFIX game
+#define POOL_RES_TYPE RES_GAME
+#define POOL_IMPLEMENTATION
+#define POOL_MAX_CAP MAX_GAMES
+#include "pool.h"
 
-extern GameSlot games[MAX_GAMES];
+extern GamePool games;
 
 void gamesInit() {
     for (int i = 0; i < MAX_GAMES; i++) {
-        games[i] = (GameSlot){0};
-        games[i].generation = 1;
+        games.items[i] = (GameSlot){0};
+        games.items[i].generation = 1;
     }
 }
 
-void initGame(GameApi *gameApi, char *name, uint8_t slot, uint8_t gen);
+void initGame(Game *gameApi, char *name, uint8_t slot, uint8_t gen);
 
 uint8_t gameAdd(char *name) {
     for (uint8_t i = 1; 1 < MAX_GAMES; i++) {
-        if (games[i].game.umka != NULL)
+        if (games.items[i].item.umka != NULL)
             continue;
 
-        GameApi game = {0};
+        Game game = {0};
         initGame(&game, name, i, 1);
-        texturePoolInit(&game.textures, i, games[i].generation);
-        games[i].game = game;
+        texturePoolInit(&game.textures, i, games.items[i].generation);
+        games.items[i].item = game;
         return i;
     }
     return 0;
@@ -59,10 +60,10 @@ uint8_t gameAdd(char *name) {
 
 // static inline GameApi *gameFromRef(GameRef g) { GameApi *game = &games[g.id].game; }
 
-GameApi *gameFromUmka(Umka *umka) {
+Game *gameFromUmka(Umka *umka) {
     for (uint8_t i = 0; i < MAX_GAMES; i++) {
-        if (games[i].game.umka == umka) {
-            return &games[i].game;
+        if (games.items[i].item.umka == umka) {
+            return &games.items[i].item;
         }
     }
     return NULL;
