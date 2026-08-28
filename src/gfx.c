@@ -21,21 +21,21 @@ void gfxDrawRectangle(UmkaStackSlot *params, UmkaStackSlot *result) {
 
 void gfxLoadTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
     Umka *umka = umkaGetInstance(result);
-    GameSlot *gameSlot = slotFromUmka(umka);
+    GameApi *game = gameFromUmka(umka);
     const char *fileName = (const char *)umkaGetParam(params, 0)->ptrVal;
     Texture texture = LoadTexture(fileName);
-    Handle handle = texturePoolAdd(&gameSlot->game.textures, texture);
+    Handle handle = texturePoolAdd(&game->textures, texture);
     umkaGetResult(params, result)->intVal = handle;
     printf("New texture handle: %llu\n", handle);
 }
 void gfxDrawTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
     Umka *umka = umkaGetInstance(result);
-    GameSlot *gameSlot = slotFromUmka(umka);
+    GameApi *game = gameFromUmka(umka);
     Handle textureHandle = umkaGetParam(params, 0)->intVal;
     int32_t x = umkaGetParam(params, 1)->intVal;
     int32_t y = umkaGetParam(params, 2)->intVal;
     Color *color = (Color *)umkaGetParam(params, 3);
-    Texture *texture = texturePoolGet(&gameSlot->game.textures, textureHandle);
+    Texture *texture = texturePoolGet(&game->textures, textureHandle);
     DrawTexture(*texture, x, y, *color);
 }
 
