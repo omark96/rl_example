@@ -3,44 +3,44 @@
 #include "gfx.c"
 #include "input.c"
 
-void initGame(GameApi *gameApi, char *name, uint8_t slot, uint8_t gen) {
-    gameApi->umka = umkaAlloc();
+void initGame(Game *game, char *name, uint8_t slot, uint8_t gen) {
+    game->umka = umkaAlloc();
     const UmkaType *stateType;
     char gamePath[PATH_MAX];
     snprintf(gamePath, sizeof(gamePath), "games/%s/main.um", name);
 
-    gameApi->name = strdup(name);
+    game->name = strdup(name);
 
     bool umkaOk
-        = umkaInit(gameApi->umka, gamePath, NULL, 1024 * 1024, NULL, 0, NULL, false, false, NULL);
+        = umkaInit(game->umka, gamePath, NULL, 1024 * 1024, NULL, 0, NULL, false, false, NULL);
     if (umkaOk) {
-        coreAddUmkaModule(gameApi->umka);
-        gfxAddUmkaModule(gameApi->umka);
-        inputAddUmkaModule(gameApi->umka);
+        coreAddUmkaModule(game->umka);
+        gfxAddUmkaModule(game->umka);
+        inputAddUmkaModule(game->umka);
 
-        umkaOk = umkaCompile(gameApi->umka);
+        umkaOk = umkaCompile(game->umka);
     }
 
     if (!umkaOk) {
-        UmkaError *error = umkaGetError(gameApi->umka);
+        UmkaError *error = umkaGetError(game->umka);
         printf("Umka error %s (%d, %d): %s\n", error->fileName, error->line, error->pos,
                error->msg);
         return;
     }
     printf("Umka initialized\n");
-    umkaGetFunc(gameApi->umka, NULL, "update", &gameApi->update);
-    umkaGetFunc(gameApi->umka, NULL, "init", &gameApi->init);
-    umkaGetFunc(gameApi->umka, NULL, "hotReload", &gameApi->hotReload);
+    umkaGetFunc(game->umka, NULL, "update", &game->update);
+    umkaGetFunc(game->umka, NULL, "init", &game->init);
+    umkaGetFunc(game->umka, NULL, "hotReload", &game->hotReload);
 
-    texturePoolInit(&gameApi->textures, slot, gen);
+    texturePoolInit(&game->textures, slot, gen);
 }
 void onWarning(UmkaError *err) {
     fprintf(stderr, "%s (%s:%d): %s\n", err->fnName, err->fileName, err->line, err->msg);
 }
 
-void freeGame(GameApi *game) {
+void freeGame(Game *game) {
     umkaFree(game->umka);
-    *game = (GameApi){0};
+    *game = (Game){0};
 }
 
 void transfer(Umka *dstUmka, void *dst, const UmkaType *dstType, Umka *srcUmka, void *src,
@@ -219,7 +219,7 @@ void transfer(Umka *dstUmka, void *dst, const UmkaType *dstType, Umka *srcUmka, 
     }
 }
 
-void hotReload(GameApi *curr, GameApi *next) {
+void hotReload(Game *curr, Game *next) {
     umkaCall(curr->umka, &curr->hotReload);
     void *currState = umkaGetResult(curr->hotReload.params, curr->hotReload.result)->ptrVal;
     const UmkaType *currType
