@@ -30,14 +30,14 @@ void gfxLoadTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
 }
 
 void gfxUnloadTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
+    printf("unloaded\n");
     Umka *umka = umkaGetInstance(result);
     Game *game = gameFromUmka(umka);
     Handle textureHandle = umkaGetParam(params, 0)->intVal;
     Texture *texture = texturePoolGet(&game->textures, textureHandle);
-    if (!IsTextureValid(*texture)) {
-        return;
+    if (IsTextureValid(*texture)) {
+        UnloadTexture(*texture);
     }
-    UnloadTexture(*texture);
     texturePoolRemove(&game->textures, textureHandle);
 }
 

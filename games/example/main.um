@@ -121,6 +121,12 @@ fn update() {
         sprite := Sprite{texture, x, y, {255, 255, 255, 255}}
         state.sprites = append(state.sprites, sprite)
     }
+    if input::isMouseButtonPressed(.MOUSE_BUTTON_RIGHT){
+        textureHandle := state.sprites[len(state.sprites) - 1].textureHandle
+        printf("Unload from umka")
+        gfx::unloadTexture(textureHandle)
+        delete(state.sprites, len(state.sprites) - 1)
+    }
 }
 
 
