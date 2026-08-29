@@ -28,6 +28,19 @@ void gfxLoadTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
     umkaGetResult(params, result)->intVal = handle;
     printf("New texture handle: %llu\n", handle);
 }
+
+void gfxUnloadTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
+    printf("unloaded\n");
+    Umka *umka = umkaGetInstance(result);
+    Game *game = gameFromUmka(umka);
+    Handle textureHandle = umkaGetParam(params, 0)->intVal;
+    Texture *texture = texturePoolGet(&game->textures, textureHandle);
+    if (IsTextureValid(*texture)) {
+        UnloadTexture(*texture);
+    }
+    texturePoolRemove(&game->textures, textureHandle);
+}
+
 void gfxDrawTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
     Umka *umka = umkaGetInstance(result);
     Game *game = gameFromUmka(umka);
@@ -43,6 +56,7 @@ void gfxAddUmkaModule(Umka *umka) {
     umkaAddFunc(umka, "drawText", &gfxDrawText);
     umkaAddFunc(umka, "drawRectangle", &gfxDrawRectangle);
     umkaAddFunc(umka, "loadTexture", &gfxLoadTexture);
+    umkaAddFunc(umka, "unloadTexture", &gfxUnloadTexture);
     umkaAddFunc(umka, "drawTexture", &gfxDrawTexture);
 
     const char *umSourceNames[] = {"gfx.um"};

@@ -41,6 +41,7 @@ T *POOL_FN(Get)(POOL_TYPE *pool, Handle handle);
 #ifdef POOL_IMPLEMENTATION
 void POOL_FN(Init)(POOL_TYPE *pool, uint8_t ownerId, uint8_t ownerGen) {
     pool->items = malloc(sizeof(SLOT_TYPE) * POOL_INIT_SIZE);
+    pool->items[0] = (SLOT_TYPE){0};
     pool->count = 0;
     pool->cap = POOL_INIT_SIZE;
     pool->firstFree = 0;
@@ -113,7 +114,6 @@ bool POOL_FN(Remove)(POOL_TYPE *pool, Handle handle) {
     if (!POOL_FN(Resolve)(pool, handle, &slotId)) {
         return false;
     }
-    pool->count -= 1;
     SLOT_TYPE *slot = &pool->items[slotId];
     slot->generation += 1;
     slot->item = (T){0};
