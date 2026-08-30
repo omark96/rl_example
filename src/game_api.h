@@ -18,6 +18,7 @@ typedef struct Game {
     char *name;
     Umka *umka;
     bool active;
+    long lastModified;
 
     TexturePool textures;
 
@@ -42,7 +43,7 @@ void gamesInit() {
     }
 }
 
-void initGame(Game *gameApi, char *name, uint8_t slot, uint8_t gen);
+bool initUmka(Game *gameApi);
 
 uint8_t gameAdd(char *name) {
     for (uint8_t i = 1; 1 < MAX_GAMES; i++) {
@@ -50,7 +51,7 @@ uint8_t gameAdd(char *name) {
             continue;
 
         Game game = {0};
-        initGame(&game, name, i, 1);
+        initUmka(&game);
         texturePoolInit(&game.textures, i, games.items[i].generation);
         games.items[i].item = game;
         return i;

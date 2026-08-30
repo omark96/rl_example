@@ -35,24 +35,31 @@ int main() {
             active = loadScreen;
         }
         Game game = {};
-        initGame(&game, gamePaths.paths[i] + 6, i, 1);
-        umkaCall(game.umka, &game.init);
+        bool initOk = initGame(&game, gameName);
+        if (initOk) {
+            umkaCall(game.umka, &game.init);
+        }
         gameHandles[i] = gamePoolAdd(&games, game);
+        Game *stored = gamePoolGet(&games, gameHandles[i]);
+        texturePoolInit(&stored->textures, handleSlot(gameHandles[i]),
+                        handleSlotGen(gameHandles[i]));
     }
 
+    float lastCheckedGames = 0;
+
     while (!WindowShouldClose()) {
+
         BeginDrawing();
         ClearBackground(GRAY);
         if (active >= 0) {
-            game = *gamePoolGet(&games, gameHandles[active]);
-            umkaCall(game.umka, &game.update);
+            Game *game = gamePoolGet(&games, gameHandles[active]);
+            if (game->umka != NULL) {
+                umkaCall(game->umka, &game->update);
+            } else {
+                DrawText(TextFormat("Invalid game: %s", game->name), 200, 200, 40, WHITE);
+            }
             if (IsKeyPressed(KEY_F5)) {
-                Game next;
-                initGame(&next, game.name, active, 1);
-                hotReload(&game, &next);
-                freeGame(&game);
-                Game *activeGame = gamePoolGet(&games, gameHandles[active]);
-                *activeGame = next;
+                reloadGame(game, 0);
             } else if (IsKeyPressed(KEY_P)) {
                 active = -1;
             }
@@ -74,6 +81,12 @@ int main() {
             }
         }
         EndDrawing();
+
+        lastCheckedGames += GetFrameTime();
+        if (lastCheckedGames > 0.25) {
+            checkForGameUpdates(&games);
+            lastCheckedGames = 0;
+        }
     }
     CloseWindow();
 

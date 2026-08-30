@@ -3,13 +3,18 @@
 #include "gfx.c"
 #include "input.c"
 
-void initGame(Game *game, char *name, uint8_t slot, uint8_t gen) {
+bool initGame(Game *game, char *name) {
+    game->name = strdup(name);
+    return initUmka(game);
+}
+
+bool initUmka(Game *game) {
     game->umka = umkaAlloc();
     const UmkaType *stateType;
     char gamePath[PATH_MAX];
-    snprintf(gamePath, sizeof(gamePath), "games/%s/main.um", name);
+    snprintf(gamePath, sizeof(gamePath), "games/%s/main.um", game->name);
 
-    game->name = strdup(name);
+    game->lastModified = GetFileModTime(gamePath);
 
     bool umkaOk
         = umkaInit(game->umka, gamePath, NULL, 1024 * 1024, NULL, 0, NULL, false, false, NULL);
@@ -25,20 +30,26 @@ void initGame(Game *game, char *name, uint8_t slot, uint8_t gen) {
         UmkaError *error = umkaGetError(game->umka);
         printf("Umka error %s (%d, %d): %s\n", error->fileName, error->line, error->pos,
                error->msg);
-        return;
+        umkaFree(game->umka);
+        game->umka = NULL;
+        return false;
     }
     printf("Umka initialized\n");
     umkaGetFunc(game->umka, NULL, "update", &game->update);
     umkaGetFunc(game->umka, NULL, "init", &game->init);
     umkaGetFunc(game->umka, NULL, "hotReload", &game->hotReload);
 
-    texturePoolInit(&game->textures, slot, gen);
+    return true;
 }
+
 void onWarning(UmkaError *err) {
     fprintf(stderr, "%s (%s:%d): %s\n", err->fnName, err->fileName, err->line, err->msg);
 }
 
 void freeGame(Game *game) {
+    if (!game->umka) {
+        return;
+    }
     umkaFree(game->umka);
     *game = (Game){0};
 }
@@ -220,6 +231,13 @@ void transfer(Umka *dstUmka, void *dst, const UmkaType *dstType, Umka *srcUmka, 
 }
 
 void hotReload(Game *curr, Game *next) {
+    if (!next->umka) {
+        return;
+    }
+    if (!curr->umka) {
+        umkaCall(next->umka, &next->init);
+        return;
+    }
     umkaCall(curr->umka, &curr->hotReload);
     void *currState = umkaGetResult(curr->hotReload.params, curr->hotReload.result)->ptrVal;
     const UmkaType *currType
@@ -231,5 +249,55 @@ void hotReload(Game *curr, Game *next) {
         = umkaGetResultType(next->hotReload.params, next->hotReload.result)->base;
 
     transfer(next->umka, nextState, nextType, curr->umka, currState, currType);
-    next->textures = curr->textures;
+}
+
+bool reloadGame(Game *curr, long modTime) {
+    Game next = {0};
+    next.name = curr->name;
+
+    if (!initUmka(&next)) {
+        curr->lastModified = modTime;
+        return false;
+    }
+    hotReload(curr, &next);
+    if (curr->umka) {
+        umkaFree(curr->umka);
+    }
+    curr->umka = next.umka;
+    curr->update = next.update;
+    curr->init = next.init;
+    curr->hotReload = next.hotReload;
+    if (modTime) {
+        curr->lastModified = modTime;
+    }
+    return true;
+}
+
+void checkForGameUpdates(GamePool *games) {
+    FilePathList gamePaths = LoadDirectoryFilesEx("games", "DIRS*", false);
+
+    int gameCount = gamePaths.count;
+
+    char gamePath[PATH_MAX];
+
+    for (int i = 0; i < gameCount; i++) {
+        char *gameName = gamePaths.paths[i] + 6;
+        snprintf(gamePath, sizeof(gamePath), "games/%s/main.um", gameName);
+
+        for (int j = 0; j < games->count; j++) {
+            Game *game = &games->items[j].item;
+            if (!game->name) {
+                continue;
+            }
+            if (strcmp(game->name, gameName) == 0) {
+                long lastModified = GetFileModTime(gamePath);
+                if (lastModified > game->lastModified) {
+                    reloadGame(game, lastModified);
+                }
+                break;
+            }
+        }
+    }
+
+    UnloadDirectoryFiles(gamePaths);
 }
