@@ -32,18 +32,19 @@ typedef struct POOL_TYPE {
     uint8_t ownerGen;
 } POOL_TYPE;
 
-void POOL_FN(Init)(POOL_TYPE *pool, uint8_t ownerId, uint8_t ownerGen);
+void POOL_FN(Init)(POOL_TYPE *pool, T defaultItem, uint8_t ownerId, uint8_t ownerGen);
 bool POOL_FN(Grow)(POOL_TYPE *pool);
 Handle POOL_FN(Add)(POOL_TYPE *pool, T item);
 bool POOL_FN(Remove)(POOL_TYPE *pool, Handle handle);
 bool POOL_FN(Resolve)(POOL_TYPE *pool, Handle handle, uint16_t *outSlotId);
 T *POOL_FN(Get)(POOL_TYPE *pool, Handle handle);
+void POOL_FN(SetDefault)(POOL_TYPE *pool, T item);
 
 #ifdef POOL_IMPLEMENTATION
-void POOL_FN(Init)(POOL_TYPE *pool, uint8_t ownerId, uint8_t ownerGen) {
+void POOL_FN(Init)(POOL_TYPE *pool, T defaultItem, uint8_t ownerId, uint8_t ownerGen) {
     pool->items = malloc(sizeof(SLOT_TYPE) * POOL_INIT_SIZE);
-    pool->items[0] = (SLOT_TYPE){0};
     pool->count = 0;
+    pool->liveCount = 0;
     pool->cap = POOL_INIT_SIZE;
     pool->firstFree = 0;
     pool->ownerId = ownerId;
@@ -53,6 +54,7 @@ void POOL_FN(Init)(POOL_TYPE *pool, uint8_t ownerId, uint8_t ownerGen) {
         pool->items[i].item = (T){0};
         pool->items[i].nextFree = 0;
     }
+    pool->items[0].item = defaultItem;
 }
 
 bool POOL_FN(Grow)(POOL_TYPE *pool) {
@@ -140,6 +142,8 @@ T *POOL_FN(Get)(POOL_TYPE *pool, Handle handle) {
     }
     return &pool->items[slotId].item;
 }
+
+void POOL_FN(SetDefault)(POOL_TYPE *pool, T item) { pool->items[0].item = item; }
 
 #undef POOL_IMPLEMENTATION
 #endif // POOL_IMPLEMENTATION

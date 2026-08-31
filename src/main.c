@@ -41,8 +41,13 @@ int main() {
         }
         gameHandles[i] = gamePoolAdd(&games, game);
         Game *stored = gamePoolGet(&games, gameHandles[i]);
-        texturePoolInit(&stored->textures, handleSlot(gameHandles[i]),
-                        handleSlotGen(gameHandles[i]));
+        uint16_t gameSlot = handleSlot(gameHandles[i]);
+        uint32_t gameGen = handleSlotGen(gameHandles[i]);
+        texturePoolInit(&stored->textures, LoadTexture("defaultAssets/default_texture.png"),
+                        gameSlot, gameGen);
+        renderTexturePoolInit(&game.renderTextures,
+                              LoadRenderTexture(GetScreenWidth(), GetScreenHeight()), gameSlot,
+                              gameGen);
     }
 
     float lastCheckedGames = 0;
