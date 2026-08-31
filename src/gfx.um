@@ -1,8 +1,8 @@
 type Color* = struct {r, g, b, a: uint8}
-type TextureHandle* = uint
+type Texture* = struct {handle: uint}
 
 fn drawText*(text: str, posX, posY, fontSize: int32, color: Color)
 fn drawRectangle*(posX, posY, width, height: int32, color: Color)
-fn loadTexture*(filename: str): TextureHandle
-fn unloadTexture*(textureHandle: TextureHandle)
-fn drawTexture*(textureHandle: TextureHandle, x, y: int32, tint: Color)
+fn loadTexture*(filename: str): Texture
+fn unloadTexture*(texture: Texture)
+fn drawTexture*(texture: Texture, x, y: int32, tint: Color)

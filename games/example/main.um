@@ -16,7 +16,7 @@ type Some_Enum = enum {
 }
 
 type Sprite = struct {
-    textureHandle: gfx::TextureHandle;
+    texture: gfx::Texture;
     x: int32;
     y: int32;
     tint: gfx::Color;
@@ -87,7 +87,7 @@ fn update() {
     state.some_counter += 1
     gfx::drawRectangle(state.pos[0], state.pos[1], 1000, 100, {20, 20, 200, 255})
     for index, sprite in state.sprites {
-        gfx::drawTexture(sprite.textureHandle, sprite.x, sprite.y, sprite.tint)
+        gfx::drawTexture(sprite.texture, sprite.x, sprite.y, sprite.tint)
     }
     gfx::drawText("Hello from Example1", 200, 200, 40, {200, 200, 200, 255})
     for i, dot in state.dots {
@@ -122,9 +122,9 @@ fn update() {
         state.sprites = append(state.sprites, sprite)
     }
     if input::isMouseButtonPressed(.MOUSE_BUTTON_RIGHT){
-        textureHandle := state.sprites[len(state.sprites) - 1].textureHandle
+        texture := state.sprites[len(state.sprites) - 1].texture
         printf("Unload from umka")
-        gfx::unloadTexture(textureHandle)
+        gfx::unloadTexture(texture)
         delete(state.sprites, len(state.sprites) - 1)
     }
 }
