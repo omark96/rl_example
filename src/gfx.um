@@ -1,5 +1,5 @@
 type Color* = struct {r, g, b, a: uint8}
-type Texture* = struct {handle: uint}
+type Texture* = struct {_: uint}
 
 fn drawText*(text: str, posX, posY, fontSize: int32, color: Color)
 fn drawRectangle*(posX, posY, width, height: int32, color: Color)
