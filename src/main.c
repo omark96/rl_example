@@ -1,6 +1,8 @@
 #include "assert.h"
 #include "game_api.c"
 #include "raylib.h"
+#include "raymath.h"
+#include "rlgl.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "umka_full.h"
@@ -9,10 +11,34 @@ GamePool games;
 
 Handle gameHandles[MAX_GAMES];
 
+void DrawTexQuad(Texture2D tex, Vector3 pos, Vector3 right, Vector3 up, bool flipY, Color tint) {
+    Vector3 tl = Vector3Add(Vector3Subtract(pos, right), up);
+    Vector3 bl = Vector3Subtract(Vector3Subtract(pos, right), up);
+    Vector3 br = Vector3Subtract(Vector3Add(pos, right), up);
+    Vector3 tr = Vector3Add(Vector3Add(pos, right), up);
+
+    float t0 = flipY ? 1.0f : 0.0f;
+    float t1 = flipY ? 0.0f : 1.0f;
+
+    rlSetTexture(tex.id);
+    rlBegin(RL_QUADS);
+    rlColor4ub(tint.r, tint.g, tint.b, tint.a);
+    Vector3 n = Vector3Normalize(Vector3CrossProduct(right, up));
+    rlNormal3f(n.x, n.y, n.z);
+    rlTexCoord2f(0, t0);
+    rlVertex3f(tl.x, tl.y, tl.z);
+    rlTexCoord2f(0, t1);
+    rlVertex3f(bl.x, bl.y, bl.z);
+    rlTexCoord2f(1, t1);
+    rlVertex3f(br.x, br.y, br.z);
+    rlTexCoord2f(1, t0);
+    rlVertex3f(tr.x, tr.y, tr.z);
+    rlEnd();
+    rlSetTexture(0);
+}
+
 int main() {
     int gameCount = 0;
-    int loadScreen = 0;
-    int active = 0;
 
     Game game;
 
@@ -30,10 +56,6 @@ int main() {
 
     for (int i = 0; i < gameCount; i++) {
         char *gameName = gamePaths.paths[i] + 6;
-        if (strcmp(gameName, "loadScreen") == 0) {
-            loadScreen = i;
-            active = loadScreen;
-        }
         Game game = {};
         bool initOk = initGame(&game, gameName);
         if (initOk) {
@@ -45,46 +67,73 @@ int main() {
         uint32_t gameGen = handleSlotGen(gameHandles[i]);
         texturePoolInit(&stored->textures, LoadTexture("defaultAssets/default_texture.png"),
                         gameSlot, gameGen);
-        renderTexturePoolInit(&game.renderTextures,
-                              LoadRenderTexture(GetScreenWidth(), GetScreenHeight()), gameSlot,
-                              gameGen);
+        renderTexture2DPoolInit(&stored->renderTextures,
+                                LoadRenderTexture(GetScreenWidth(), GetScreenHeight()), gameSlot,
+                                gameGen);
+        int a = 1;
     }
 
     float lastCheckedGames = 0;
+    Camera3D camera = {0};
+    camera.position = (Vector3){10.0f, 10.0f, 10.0f};
+    camera.target = (Vector3){0.0f, 0.0f, 0.0f};
+    camera.up = (Vector3){0.0f, 1.0f, 0.0f};
+    camera.fovy = 45.0f;
+    camera.projection = CAMERA_PERSPECTIVE;
+
+    bool cameraEnabled = false;
 
     while (!WindowShouldClose()) {
-
+        int game_to_toggle = -1;
+        if (cameraEnabled) {
+            UpdateCamera(&camera, CAMERA_FREE);
+        }
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            cameraEnabled = true;
+            DisableCursor();
+        }
+        if (IsKeyPressed(KEY_C)) {
+            cameraEnabled = false;
+            EnableCursor();
+        }
         BeginDrawing();
         ClearBackground(GRAY);
-        if (active >= 0) {
-            Game *game = gamePoolGet(&games, gameHandles[active]);
+
+        if (IsKeyPressed(KEY_ONE)) {
+            game_to_toggle = 0;
+        } else if (IsKeyPressed(KEY_TWO)) {
+            game_to_toggle = 1;
+        } else if (IsKeyPressed(KEY_THREE)) {
+            game_to_toggle = 2;
+        } else if (IsKeyPressed(KEY_FOUR)) {
+            game_to_toggle = 3;
+        } else if (IsKeyPressed(KEY_FIVE)) {
+            game_to_toggle = 4;
+        }
+
+        for (size_t i = 0; i < gameCount; i++) {
+            Game *game = gamePoolGet(&games, gameHandles[i]);
+            if (i == game_to_toggle) {
+                game->active = !game->active;
+            }
+            if (!game->active) {
+                continue;
+            }
+            RenderTexture2D renderTexture = game->renderTextures.items[0].item;
+            BeginTextureMode(renderTexture);
+            ClearBackground(WHITE);
             if (game->umka != NULL) {
                 umkaCall(game->umka, &game->update);
             } else {
                 DrawText(TextFormat("Invalid game: %s", game->name), 200, 200, 40, WHITE);
             }
-            if (IsKeyPressed(KEY_F5)) {
-                reloadGame(game, 0);
-            } else if (IsKeyPressed(KEY_P)) {
-                active = -1;
-            }
-        } else {
-            for (int i = 0; i < gameCount; i++) {
-                DrawText(TextFormat("%d: %s", i + 1, gamePoolGet(&games, gameHandles[i])->name), 50,
-                         50 + 25 * i, 20, BLACK);
-            }
-            if (IsKeyPressed(KEY_ONE)) {
-                active = 0;
-            } else if (IsKeyPressed(KEY_TWO)) {
-                active = 1;
-            } else if (IsKeyPressed(KEY_THREE)) {
-                active = 2;
-            } else if (IsKeyPressed(KEY_FOUR)) {
-                active = 3;
-            } else if (IsKeyPressed(KEY_FIVE)) {
-                active = 4;
-            }
+            EndTextureMode();
+            BeginMode3D(camera);
+            DrawTexQuad(renderTexture.texture, (Vector3){5.0f * i, 1.5f, 0}, (Vector3){1.0f, 0, 0},
+                        (Vector3){0, 0.5625f, 0}, true, WHITE);
+            EndMode3D();
         }
+
         EndDrawing();
 
         lastCheckedGames += GetFrameTime();

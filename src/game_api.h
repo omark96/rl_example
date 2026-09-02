@@ -15,8 +15,8 @@
 #define POOL_MAX_CAP MAX_TEXTURES
 #include "pool.h"
 
-#define T RenderTexture
-#define F_PREFIX renderTexture
+#define T RenderTexture2D
+#define F_PREFIX renderTexture2D
 #define POOL_RES_TYPE RES_RENDER_TEXTURE
 #define POOL_IMPLEMENTATION
 #define POOL_MAX_CAP MAX_RENDER_TEXTURES
@@ -29,7 +29,7 @@ typedef struct Game {
     long lastModified;
 
     TexturePool textures;
-    RenderTexturePool renderTextures;
+    RenderTexture2DPool renderTextures;
 
     UmkaFuncContext update;
     UmkaFuncContext init;
@@ -63,9 +63,9 @@ uint8_t gameAdd(char *name) {
         initUmka(&game);
         texturePoolInit(&game.textures, LoadTexture("defaultAssets/default_texture.png"), i,
                         games.items[i].generation);
-        renderTexturePoolInit(&game.renderTextures,
-                              LoadRenderTexture(GetScreenWidth(), GetScreenHeight()), i,
-                              games.items[i].generation);
+        renderTexture2DPoolInit(&game.renderTextures,
+                                LoadRenderTexture(GetScreenWidth(), GetScreenHeight()), i,
+                                games.items[i].generation);
         games.items[i].item = game;
         return i;
     }
