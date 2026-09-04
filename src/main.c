@@ -5,7 +5,7 @@
 #include "stdlib.h"
 #include "umka_full.h"
 
-GamePool games;
+GlobalResources g_resources;
 
 Handle gameHandles[MAX_GAMES];
 
@@ -26,6 +26,8 @@ int main() {
     printf("Number of games: %d\n", gamePaths.count);
     printf("First game: %s\n", gamePaths.paths[0] + 6);
 
+    texturePoolInit(&g_resources.textures, LoadTexture("defaultAssets/default_texture.png"));
+
     for (int i = 0; i < gameCount; i++) {
         char *gameName = gamePaths.paths[i] + 6;
         Game game = {};
@@ -33,15 +35,10 @@ int main() {
         if (initOk) {
             umkaCall(game.umka, &game.init);
         }
-        gameHandles[i] = gamePoolAdd(&games, game);
-        Game *stored = gamePoolGet(&games, gameHandles[i]);
-        uint16_t gameSlot = handleSlot(gameHandles[i]);
-        uint32_t gameGen = handleSlotGen(gameHandles[i]);
-        texturePoolInit(&stored->textures, LoadTexture("defaultAssets/default_texture.png"),
-                        gameSlot, gameGen);
-        renderTexture2DPoolInit(&stored->renderTextures,
-                                LoadRenderTexture(GetScreenWidth(), GetScreenHeight()), gameSlot,
-                                gameGen);
+        game.screen = renderTexture2DPoolAdd(
+            &g_resources.renderTextures, LoadRenderTexture(GetScreenWidth(), GetScreenHeight()));
+        gameHandles[i] = gamePoolAdd(&g_resources.games, game);
+        Game *stored = gamePoolGet(&g_resources.games, gameHandles[i]);
     }
 
     float lastCheckedGames = 0;
@@ -83,14 +80,15 @@ int main() {
         }
 
         for (size_t i = 0; i < gameCount; i++) {
-            Game *game = gamePoolGet(&games, gameHandles[i]);
+            Game *game = gamePoolGet(&g_resources.games, gameHandles[i]);
             if (i == game_to_toggle) {
                 game->active = !game->active;
             }
             if (!game->active) {
                 continue;
             }
-            RenderTexture2D renderTexture = game->renderTextures.items[0].item;
+            RenderTexture2D renderTexture
+                = *renderTexture2DPoolGet(&g_resources.renderTextures, game->screen);
             BeginTextureMode(renderTexture);
             ClearBackground(WHITE);
             if (game->umka != NULL) {
@@ -109,14 +107,14 @@ int main() {
 
         lastCheckedGames += GetFrameTime();
         if (lastCheckedGames > 0.25) {
-            checkForGameUpdates(&games);
+            checkForGameUpdates(&g_resources.games);
             lastCheckedGames = 0;
         }
     }
     CloseWindow();
 
     for (int i = 0; i < gameCount; i++) {
-        freeGame(gamePoolGet(&games, gameHandles[i]));
+        freeGame(gamePoolGet(&g_resources.games, gameHandles[i]));
     }
 
     return 0;

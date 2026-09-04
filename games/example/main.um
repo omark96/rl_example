@@ -116,8 +116,8 @@ fn update() {
         dot := Dot {{x, y}}
         state.dots = append(state.dots, dot)
         state.some_pointer^ += 1
-        // texture := gfx::loadTexture("games/example/assets/textures/smile.png")
-        texture := gfx::loadTexture("games/example/assets/textures/smiles.png")
+        texture := gfx::loadTexture("games/example/assets/textures/smile.png")
+        // texture := gfx::loadTexture("games/example/assets/textures/smiles.png")
         // texture := gfx::loadTexture("games/example/assets/textures/frown.png")
         sprite := Sprite{texture, x, y, {255, 255, 255, 255}}
         state.sprites = append(state.sprites, sprite)

@@ -7,16 +7,18 @@ void corePrint(UmkaStackSlot *params, UmkaStackSlot *result) {
 
 void coreGetAllGames(UmkaStackSlot *params, UmkaStackSlot *result) {
     Umka *umka = umkaGetInstance(result);
+    GamePool *games = &g_resources.games;
     const UmkaType *resultType = umkaGetResultType(params, result);
     typedef UmkaDynArray(Handle) HandleArray;
     HandleArray *out = umkaGetResult(params, result)->ptrVal;
-    umkaMakeDynArray(umka, out, resultType, games.liveCount);
-    gamePoolGetAllHandles(&games, out->data, games.liveCount);
+    umkaMakeDynArray(umka, out, resultType, games->liveCount);
+    gamePoolGetAllHandles(games, out->data, games->liveCount);
 }
 void coreGetGameName(UmkaStackSlot *params, UmkaStackSlot *result) {
     Umka *umka = umkaGetInstance(result);
+    GamePool *games = &g_resources.games;
     Handle gameHandle = *(Handle *)umkaGetParam(params, 0);
-    char *name = gamePoolGet(&games, gameHandle)->name;
+    char *name = gamePoolGet(games, gameHandle)->name;
     result->ptrVal = umkaMakeStr(umka, name);
 }
 
