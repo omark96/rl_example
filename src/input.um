@@ -8,6 +8,13 @@ type MouseButton* = enum {
     MOUSE_BUTTON_BACK    = 6;
 }
 
+
+type KeyboardKey* = enum {
+    KEY_A = 65;
+}
+
 fn isMouseButtonPressed*(button: MouseButton): bool
 fn getMouseX*(): int32
 fn getMouseY*(): int32
+
+fn isKeyPressed*(key: KeyboardKey): bool

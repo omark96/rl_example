@@ -130,6 +130,12 @@ fn update() {
             delete(state.sprites, len(state.sprites) - 1)
         }
     }
+
+    games := core::getAllGames()
+    for i, game in games {
+        name := core::getGameName(game)
+        printf("%s\n", name);
+    }
 }
 
 

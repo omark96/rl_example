@@ -1,8 +1,6 @@
 #include "assert.h"
 #include "game_api.c"
 #include "raylib.h"
-#include "raymath.h"
-#include "rlgl.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "umka_full.h"
@@ -10,32 +8,6 @@
 GamePool games;
 
 Handle gameHandles[MAX_GAMES];
-
-void DrawTexQuad(Texture2D tex, Vector3 pos, Vector3 right, Vector3 up, bool flipY, Color tint) {
-    Vector3 tl = Vector3Add(Vector3Subtract(pos, right), up);
-    Vector3 bl = Vector3Subtract(Vector3Subtract(pos, right), up);
-    Vector3 br = Vector3Subtract(Vector3Add(pos, right), up);
-    Vector3 tr = Vector3Add(Vector3Add(pos, right), up);
-
-    float t0 = flipY ? 1.0f : 0.0f;
-    float t1 = flipY ? 0.0f : 1.0f;
-
-    rlSetTexture(tex.id);
-    rlBegin(RL_QUADS);
-    rlColor4ub(tint.r, tint.g, tint.b, tint.a);
-    Vector3 n = Vector3Normalize(Vector3CrossProduct(right, up));
-    rlNormal3f(n.x, n.y, n.z);
-    rlTexCoord2f(0, t0);
-    rlVertex3f(tl.x, tl.y, tl.z);
-    rlTexCoord2f(0, t1);
-    rlVertex3f(bl.x, bl.y, bl.z);
-    rlTexCoord2f(1, t1);
-    rlVertex3f(br.x, br.y, br.z);
-    rlTexCoord2f(1, t0);
-    rlVertex3f(tr.x, tr.y, tr.z);
-    rlEnd();
-    rlSetTexture(0);
-}
 
 int main() {
     int gameCount = 0;
@@ -70,7 +42,6 @@ int main() {
         renderTexture2DPoolInit(&stored->renderTextures,
                                 LoadRenderTexture(GetScreenWidth(), GetScreenHeight()), gameSlot,
                                 gameGen);
-        int a = 1;
     }
 
     float lastCheckedGames = 0;

@@ -22,6 +22,9 @@
 #define POOL_MAX_CAP MAX_RENDER_TEXTURES
 #include "pool.h"
 
+// TODO: Rewrite this into a single shared pool for each of the resources. Add a "screen"-field to
+// the game struct with the default render texture of the game.
+
 typedef struct Game {
     char *name;
     Umka *umka;

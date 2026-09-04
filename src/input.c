@@ -7,6 +7,12 @@ void inputIsMouseButtonPressed(UmkaStackSlot *params, UmkaStackSlot *result) {
     umkaGetResult(params, result)->intVal = pressed;
 }
 
+void inputIsKeyPressed(UmkaStackSlot *params, UmkaStackSlot *result) {
+    KeyboardKey key = umkaGetParam(params, 0)->intVal;
+    bool pressed = IsKeyPressed(key);
+    umkaGetResult(params, result)->intVal = pressed;
+}
+
 void inputGetMouseX(UmkaStackSlot *params, UmkaStackSlot *result) {
     int x = GetMouseX();
     umkaGetResult(params, result)->intVal = x;
@@ -21,6 +27,7 @@ void inputAddUmkaModule(Umka *umka) {
     umkaAddFunc(umka, "getMouseX", &inputGetMouseX);
     umkaAddFunc(umka, "getMouseY", &inputGetMouseY);
     umkaAddFunc(umka, "isMouseButtonPressed", &inputIsMouseButtonPressed);
+    umkaAddFunc(umka, "isKeyPressed", &inputIsKeyPressed);
 
     const char *umSourceNames[] = {"input.um"};
     const char *umSourceFiles[] = {(const char[]){

@@ -143,6 +143,23 @@ T *POOL_FN(Get)(POOL_TYPE *pool, Handle handle) {
     return &pool->items[slotId].item;
 }
 
+void *POOL_FN(GetAllHandles)(POOL_TYPE *pool, Handle *handles, uint32_t size) {
+    uint8_t ownerId = pool->ownerId;
+    uint8_t ownerGen = pool->ownerGen;
+    uint32_t max = size < pool->liveCount ? size : pool->liveCount;
+    uint32_t next = 0;
+    for (uint32_t i = 0; i < pool->count; i++) {
+        SLOT_TYPE slot = pool->items[i];
+        if (slot.generation & 1) {
+            handles[next] = makeHandle(POOL_RES_TYPE, ownerId, ownerGen, i, slot.generation);
+            next += 1;
+        }
+        if (next >= max) {
+            break;
+        }
+    }
+}
+
 void POOL_FN(SetDefault)(POOL_TYPE *pool, T item) { pool->items[0].item = item; }
 
 #undef POOL_IMPLEMENTATION
