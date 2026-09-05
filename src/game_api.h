@@ -26,10 +26,18 @@ typedef struct Handle {
 #define POOL_MAX_CAP MAX_RENDER_TEXTURES
 #include "pool.h"
 
+typedef enum GameState {
+    STATE_DISABLED,
+    STATE_HIDDEN,
+    STATE_IDLE,
+    STATE_ENABLED,
+    STATE_ACTIVE,
+} GameState;
+
 typedef struct Game {
     char *name;
     Umka *umka;
-    bool active;
+    GameState state;
     long lastModified;
 
     Handle screen;

@@ -82,9 +82,9 @@ int main() {
         for (size_t i = 0; i < gameCount; i++) {
             Game *game = gamePoolGet(&g_resources.games, gameHandles[i]);
             if (i == game_to_toggle) {
-                game->active = !game->active;
+                game->state = game->state == STATE_ENABLED ? STATE_DISABLED : STATE_ENABLED;
             }
-            if (!game->active) {
+            if (game->state == STATE_DISABLED) {
                 continue;
             }
             RenderTexture2D renderTexture
