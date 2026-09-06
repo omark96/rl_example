@@ -85,6 +85,17 @@ fn init() {
 
 fn update() {
     state.some_counter += 1
+    
+
+    games := core::getAllGames()
+    for i, game in games {
+        name := core::getGameName(game)
+        // printf("%s\n", name);
+    }
+}
+
+fn draw() {
+    gfx::clearBackground({220, 220, 220, 255})
     gfx::drawRectangle(state.pos[0], state.pos[1], 1000, 100, {20, 20, 200, 255})
     for index, sprite in state.sprites {
         gfx::drawTexture(sprite.texture, sprite.x, sprite.y, sprite.tint)
@@ -105,8 +116,9 @@ fn update() {
         gfx::drawText(sprintf("%v: %v", key, value), 600, i * 20, 20, {20, 20, 20, 255})
         i += 1
     }
+}
 
-
+fn input() {
     if input::isMouseButtonPressed(.MOUSE_BUTTON_LEFT){
         x := input::getMouseX()
         y := input::getMouseY()
@@ -130,12 +142,4 @@ fn update() {
             delete(state.sprites, len(state.sprites) - 1)
         }
     }
-
-    games := core::getAllGames()
-    for i, game in games {
-        name := core::getGameName(game)
-        printf("%s\n", name);
-    }
 }
-
-

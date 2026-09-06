@@ -28,6 +28,32 @@ void DrawTexQuad(Texture2D tex, Vector3 pos, Vector3 right, Vector3 up, bool fli
     rlSetTexture(0);
 }
 
+void gfxBeginMode3D(UmkaStackSlot *params, UmkaStackSlot *result) {
+    Camera3D *camera = (Camera3D *)umkaGetParam(params, 0);
+    BeginMode3D(*camera);
+}
+
+void gfxEndMode3D(UmkaStackSlot *params, UmkaStackSlot *result) { EndMode3D(); }
+
+void gfxUpdateCamera(UmkaStackSlot *params, UmkaStackSlot *result) {
+    Camera3D *camera = umkaGetParam(params, 0)->ptrVal;
+    CameraMode cameraMode = umkaGetParam(params, 1)->intVal;
+    UpdateCamera(camera, cameraMode);
+}
+
+void gfxDrawTexQuad(UmkaStackSlot *params, UmkaStackSlot *result) {
+    Handle *textureHandle = (Handle *)umkaGetParam(params, 0);
+    Vector3 *pos = (Vector3 *)umkaGetParam(params, 1);
+    Vector3 *right = (Vector3 *)umkaGetParam(params, 2);
+    Vector3 *up = (Vector3 *)umkaGetParam(params, 3);
+    bool flipY = umkaGetParam(params, 4)->intVal;
+    Color *tint = (Color *)umkaGetParam(params, 5);
+
+    Texture2D *texture = texturePoolGet(&g_resources.textures, *textureHandle);
+
+    DrawTexQuad(*texture, *pos, *right, *up, flipY, *tint);
+}
+
 void gfxDrawText(UmkaStackSlot *params, UmkaStackSlot *result) {
     const char *text = (const char *)umkaGetParam(params, 0)->ptrVal;
     int posX = umkaGetParam(params, 1)->intVal;
@@ -44,6 +70,11 @@ void gfxDrawRectangle(UmkaStackSlot *params, UmkaStackSlot *result) {
     int height = umkaGetParam(params, 3)->intVal;
     Color *color = (Color *)umkaGetParam(params, 4);
     DrawRectangle(posX, posY, width, height, *color);
+}
+
+void gfxClearBackground(UmkaStackSlot *params, UmkaStackSlot *result) {
+    Color *color = (Color *)umkaGetParam(params, 0);
+    ClearBackground(*color);
 }
 
 void gfxLoadTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
@@ -79,12 +110,41 @@ void gfxDrawTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
     DrawTexture(*texture, x, y, *color);
 }
 
+void gfxGetGameScreen(UmkaStackSlot *params, UmkaStackSlot *result) {
+    Handle gameHandle = *(Handle *)umkaGetParam(params, 0);
+    Game *game = gamePoolGet(&g_resources.games, gameHandle);
+    *(Handle *)umkaGetResult(params, result)->ptrVal = game->screen;
+}
+
+void gfxGetGameScreenTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
+    Handle renderTextureHandle = *(Handle *)umkaGetParam(params, 0);
+    uint32_t textureId
+        = renderTexture2DPoolGet(&g_resources.renderTextures, renderTextureHandle)->texture.id;
+    Handle textureHandle = {0};
+    for (int i = 0; i < g_resources.textures.count; i++) {
+        TextureSlot slot = g_resources.textures.items[i];
+        Texture texture = slot.item;
+        if (texture.id == textureId) {
+            textureHandle.slot = i;
+            textureHandle.generation = slot.generation;
+        }
+    }
+    *(Handle *)umkaGetResult(params, result)->ptrVal = textureHandle;
+}
+
 void gfxAddUmkaModule(Umka *umka) {
     umkaAddFunc(umka, "drawText", &gfxDrawText);
     umkaAddFunc(umka, "drawRectangle", &gfxDrawRectangle);
     umkaAddFunc(umka, "loadTexture", &gfxLoadTexture);
     umkaAddFunc(umka, "unloadTexture", &gfxUnloadTexture);
     umkaAddFunc(umka, "drawTexture", &gfxDrawTexture);
+    umkaAddFunc(umka, "drawTexQuad", &gfxDrawTexQuad);
+    umkaAddFunc(umka, "getGameScreen", &gfxGetGameScreen);
+    umkaAddFunc(umka, "getGameScreenTexture", &gfxGetGameScreenTexture);
+    umkaAddFunc(umka, "endMode3D", &gfxEndMode3D);
+    umkaAddFunc(umka, "beginMode3D", &gfxBeginMode3D);
+    umkaAddFunc(umka, "updateCamera", &gfxUpdateCamera);
+    umkaAddFunc(umka, "clearBackground", &gfxClearBackground);
 
     const char *umSourceNames[] = {"gfx.um"};
     const char *umSourceFiles[] = {(const char[]){

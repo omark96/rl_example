@@ -131,7 +131,7 @@ T *POOL_FN(Get)(POOL_TYPE *pool, Handle handle) {
 void *POOL_FN(GetAllHandles)(POOL_TYPE *pool, Handle *handles, uint32_t size) {
     uint32_t max = size < pool->liveCount ? size : pool->liveCount;
     uint32_t next = 0;
-    for (uint32_t i = 0; i < pool->count; i++) {
+    for (uint32_t i = 0; i <= pool->count; i++) {
         SLOT_TYPE slot = pool->items[i];
         if (slot.generation & 1) {
             handles[next] = (Handle){.slot = i, .generation = slot.generation};

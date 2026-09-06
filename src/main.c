@@ -27,18 +27,26 @@ int main() {
     printf("First game: %s\n", gamePaths.paths[0] + 6);
 
     texturePoolInit(&g_resources.textures, LoadTexture("defaultAssets/default_texture.png"));
-
+    Handle root;
     for (int i = 0; i < gameCount; i++) {
         char *gameName = gamePaths.paths[i] + 6;
-        Game game = {};
-        bool initOk = initGame(&game, gameName);
-        if (initOk) {
-            umkaCall(game.umka, &game.init);
+        gameHandles[i] = gamePoolAdd(&g_resources.games, (Game){0});
+        Game *game = gamePoolGet(&g_resources.games, gameHandles[i]);
+        initGame(game, gameName);
+        RenderTexture2D renderTexture = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+        game->screen = renderTexture2DPoolAdd(&g_resources.renderTextures, renderTexture);
+        texturePoolAdd(&g_resources.textures, renderTexture.texture);
+        game->state = STATE_ENABLED;
+        if (strcmp(gameName, "main") == 0) {
+            game->state = STATE_ACTIVE;
+            root = gameHandles[i];
         }
-        game.screen = renderTexture2DPoolAdd(
-            &g_resources.renderTextures, LoadRenderTexture(GetScreenWidth(), GetScreenHeight()));
-        gameHandles[i] = gamePoolAdd(&g_resources.games, game);
-        Game *stored = gamePoolGet(&g_resources.games, gameHandles[i]);
+    }
+    for (int i = 0; i < gameCount; i++) {
+        Game *game = gamePoolGet(&g_resources.games, gameHandles[i]);
+        if (game->umka != NULL) {
+            umkaCall(game->umka, &game->init);
+        }
     }
 
     float lastCheckedGames = 0;
@@ -64,45 +72,22 @@ int main() {
             cameraEnabled = false;
             EnableCursor();
         }
+        if (IsKeyPressed(KEY_V)) {
+            printf("Pressed v one time\n");
+        }
+        if (IsKeyPressed(KEY_V)) {
+            printf("Pressed v two times\n");
+        }
+        Game *rootGame = gamePoolGet(&g_resources.games, root);
+        runGame(rootGame);
+
         BeginDrawing();
-        ClearBackground(GRAY);
-
-        if (IsKeyPressed(KEY_ONE)) {
-            game_to_toggle = 0;
-        } else if (IsKeyPressed(KEY_TWO)) {
-            game_to_toggle = 1;
-        } else if (IsKeyPressed(KEY_THREE)) {
-            game_to_toggle = 2;
-        } else if (IsKeyPressed(KEY_FOUR)) {
-            game_to_toggle = 3;
-        } else if (IsKeyPressed(KEY_FIVE)) {
-            game_to_toggle = 4;
-        }
-
-        for (size_t i = 0; i < gameCount; i++) {
-            Game *game = gamePoolGet(&g_resources.games, gameHandles[i]);
-            if (i == game_to_toggle) {
-                game->state = game->state == STATE_ENABLED ? STATE_DISABLED : STATE_ENABLED;
-            }
-            if (game->state == STATE_DISABLED) {
-                continue;
-            }
-            RenderTexture2D renderTexture
-                = *renderTexture2DPoolGet(&g_resources.renderTextures, game->screen);
-            BeginTextureMode(renderTexture);
-            ClearBackground(WHITE);
-            if (game->umka != NULL) {
-                umkaCall(game->umka, &game->update);
-            } else {
-                DrawText(TextFormat("Invalid game: %s", game->name), 200, 200, 40, WHITE);
-            }
-            EndTextureMode();
-            BeginMode3D(camera);
-            DrawTexQuad(renderTexture.texture, (Vector3){5.0f * i, 1.5f, 0}, (Vector3){1.0f, 0, 0},
-                        (Vector3){0, 0.5625f, 0}, true, WHITE);
-            EndMode3D();
-        }
-
+        drawGame(rootGame);
+        RenderTexture2D *rootScreen
+            = renderTexture2DPoolGet(&g_resources.renderTextures, rootGame->screen);
+        DrawTextureRec(rootScreen->texture,
+                       (Rectangle){0, 0, rootScreen->texture.width, -rootScreen->texture.height},
+                       (Vector2){0, 0}, WHITE);
         EndDrawing();
 
         lastCheckedGames += GetFrameTime();

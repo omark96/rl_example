@@ -38,8 +38,58 @@ bool initUmka(Game *game) {
     umkaGetFunc(game->umka, NULL, "update", &game->update);
     umkaGetFunc(game->umka, NULL, "init", &game->init);
     umkaGetFunc(game->umka, NULL, "hotReload", &game->hotReload);
+    umkaGetFunc(game->umka, NULL, "draw", &game->draw);
+    umkaGetFunc(game->umka, NULL, "input", &game->input);
 
     return true;
+}
+
+void runGame(Game *game) {
+    for (int i = 0; i < game->childCount; i++) {
+        Game *child = gamePoolGet(&g_resources.games, game->children[i]);
+        runGame(child);
+    }
+
+    if (game->umka == NULL) {
+        return;
+    }
+
+    switch (game->state) {
+    case STATE_ACTIVE:
+        umkaCall(game->umka, &game->input);
+        umkaCall(game->umka, &game->update);
+        break;
+    case STATE_ENABLED:
+    case STATE_HIDDEN:
+    case STATE_IDLE:
+        umkaCall(game->umka, &game->update);
+        break;
+    }
+}
+
+void drawGame(Game *game) {
+    for (int i = 0; i < game->childCount; i++) {
+        Game *child = gamePoolGet(&g_resources.games, game->children[i]);
+        drawGame(child);
+    }
+    RenderTexture2D renderTexture
+        = *renderTexture2DPoolGet(&g_resources.renderTextures, game->screen);
+    BeginTextureMode(renderTexture);
+    ClearBackground(BLACK);
+    if (game->umka == NULL) {
+        DrawText(TextFormat("Invalid game: %s", game->name), 200, 200, 40, WHITE);
+        return;
+    }
+    switch (game->state) {
+    case STATE_ACTIVE:
+    case STATE_ENABLED:
+        umkaCall(game->umka, &game->draw);
+        break;
+    case STATE_IDLE:
+    case STATE_HIDDEN:
+        break;
+    }
+    EndTextureMode();
 }
 
 void onWarning(UmkaError *err) {
@@ -267,6 +317,8 @@ bool reloadGame(Game *curr, long modTime) {
     curr->update = next.update;
     curr->init = next.init;
     curr->hotReload = next.hotReload;
+    curr->draw = next.draw;
+    curr->input = next.input;
     if (modTime) {
         curr->lastModified = modTime;
     }

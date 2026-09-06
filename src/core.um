@@ -3,3 +3,4 @@ type Game* = struct {_: uint}
 fn print*(msg: str)
 fn getAllGames*(): []Game
 fn getGameName*(game: Game): str
+fn registerGame*(name: str): Game

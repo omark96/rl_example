@@ -42,8 +42,14 @@ typedef struct Game {
 
     Handle screen;
 
-    UmkaFuncContext update;
+    Handle parent;
+    Handle children[16];
+    uint8_t childCount;
+
     UmkaFuncContext init;
+    UmkaFuncContext update;
+    UmkaFuncContext draw;
+    UmkaFuncContext input;
     UmkaFuncContext hotReload;
 } Game;
 
@@ -62,13 +68,26 @@ typedef struct GlobalResources {
 extern GlobalResources g_resources;
 
 bool initUmka(Game *gameApi);
+void drawGame(Game *game);
+void updateGame(Game *game);
 
 Game *gameFromUmka(Umka *umka) {
     GamePool games = g_resources.games;
-    for (uint8_t i = 0; i < games.liveCount; i++) {
+    for (uint8_t i = 0; i <= games.liveCount; i++) {
         if (games.items[i].item.umka == umka) {
             return &games.items[i].item;
         }
     }
     return NULL;
+}
+
+Handle handleFromUmka(Umka *umka) {
+    GamePool games = g_resources.games;
+    for (uint8_t i = 0; i <= games.liveCount; i++) {
+        GameSlot slot = games.items[i];
+        if (slot.item.umka == umka) {
+            return (Handle){.slot = i, .generation = slot.generation};
+        }
+    }
+    return NULL_HANDLE;
 }
