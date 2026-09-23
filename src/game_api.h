@@ -1,6 +1,11 @@
 #pragma once
 #include "raylib.h"
-#include "umka_full.h"
+#include "umka_api.h"
+#include "umka_common.h"
+#include "umka_compiler.h"
+#include "umka_runtime.h"
+#include "umka_types.h"
+#include "umka_vm.h"
 #include <stdlib.h>
 
 typedef struct Handle {

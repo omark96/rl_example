@@ -3,7 +3,6 @@
 #include "raylib.h"
 #include "stdio.h"
 #include "stdlib.h"
-#include "umka_full.h"
 
 GlobalResources g_resources;
 
