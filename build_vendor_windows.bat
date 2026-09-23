@@ -1,6 +1,7 @@
 set ROOT=%~dp0
 
-if not exist "%ROOT%build\vendor\windows" mkdir "%ROOT%build\vendor\windows"
+del "%ROOT%build\vendor\windows"
+mkdir "%ROOT%build\vendor\windows"
 
 pushd "%ROOT%vendor\umka\src"
 del *.O 2>nul
