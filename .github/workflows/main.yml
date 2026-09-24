@@ -1,0 +1,35 @@
+name: Deploy to GitHub Pages
+ 
+on:
+  push:
+    branches: [main]
+ 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+ 
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: emscripten-core/setup-emsdk@v16
+      
+      - name: Verify
+        run: emcc -v
+      
+      - run: bash build_vendor_emscripten.sh
+      - run: bash build_web.sh
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/bin/web
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
+       
