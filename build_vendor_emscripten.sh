@@ -16,6 +16,6 @@ mkdir -p "$ROOT/build/vendor/web"
     cd "$ROOT/vendor/raylib-6.0/src" || exit 1
     rm -f *.o
     emcc -c rcore.c rshapes.c rtextures.c rtext.c rmodels.c raudio.c -Os -Wall -DPLATFORM_WEB -DGRAPHICS_API_OPENGL_ES3
-    emar rcs "$ROOT/build/vendor/web/librayliba.a" *.o
+    emar rcs "$ROOT/build/vendor/web/libraylib.a" *.o
     rm -f *.o
 )
