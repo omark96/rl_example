@@ -1,6 +1,6 @@
 set ROOT=%~dp0
 
-del "%ROOT%build\vendor\windows"
+rmdir /s /q "%ROOT%build\vendor\windows" 2>nul
 mkdir "%ROOT%build\vendor\windows"
 
 pushd "%ROOT%vendor\umka\src"
@@ -15,5 +15,5 @@ popd
 pushd "%ROOT%vendor\raylib-6.0\src"
 make PLATFORM=PLATFORM_DESKTOP
 del "%ROOT%vendor\raylib-6.0\src\*.o"
-move "%ROOT%vendor\raylib-6.0\src\libraylib.a" "%ROOT%build\vendor\windows\libraylib.a"
+move /y "%ROOT%vendor\raylib-6.0\src\libraylib.a" "%ROOT%build\vendor\windows\libraylib.a"
 popd
