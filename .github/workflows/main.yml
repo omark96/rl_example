@@ -16,7 +16,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.1.0
 
       - uses: emscripten-core/setup-emsdk@v16
       
@@ -26,10 +26,10 @@ jobs:
       - run: bash build_vendor_emscripten.sh
       - run: bash build_web.sh
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5.0.0
         with:
           path: build/bin/web
 
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5.0.1
        
