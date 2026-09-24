@@ -3,21 +3,8 @@
         {
             "type": "cppbuild",
             "label": "build debug exe",
-            "command": "C:/bin/w64devkit/bin/gcc.exe",
-            "args": [
-                "-fdiagnostics-color=always",
-                "-std=c23",
-                "-g",
-                "-o",
-                "main.exe",
-                "src/main.c",
-                "-Iinclude",
-                "-Llib",
-                "-lraylib",
-                "-lgdi32",
-                "-lwinmm",
-                "-lumka",
-            ],
+            "command": "${workspaceFolder}/build_debug.bat",
+            "args": [],
             "options": {
                 "cwd": "${workspaceFolder}"
             },

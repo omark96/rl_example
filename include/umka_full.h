@@ -1,6 +1,0 @@
-#include "umka_types.h"
-#include "umka_api.h"
-#include "umka_vm.h"
-#include "umka_common.h"
-#include "umka_runtime.h"
-#include "umka_compiler.h"
