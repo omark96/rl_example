@@ -37,10 +37,12 @@ fn input() {
 }
 
 fn draw() {
+    gfx::clearBackground({120, 167, 255, 255})
     gfx::beginMode3D(state.camera)
+    gfx::drawGrid(100, 1)
     screen := gfx::getGameScreen(state.games[0])
     texture := gfx::getGameScreenTexture(screen);
-    gfx::drawTexQuad(texture, {0, 0, 0}, {1, 0, 0}, {0, 0.5625, 0}, true, {255, 255, 255, 255})
+    gfx::drawTexQuad(texture, {0, 0.5625, 0}, {1, 0, 0}, {0, 0.5625, 0}, true, {255, 255, 255, 255})
     gfx::endMode3D()
 }
 

@@ -132,9 +132,17 @@ void gfxGetGameScreenTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
     *(Handle *)umkaGetResult(params, result)->ptrVal = textureHandle;
 }
 
+void gfxDrawGrid(UmkaStackSlot *params, UmkaStackSlot *result) {
+    int32_t slices = umkaGetParam(params, 0)->intVal;
+    float spacing = umkaGetParam(params, 1)->real32Val;
+
+    DrawGrid(slices, spacing);
+}
+
 void gfxAddUmkaModule(Umka *umka) {
     umkaAddFunc(umka, "drawText", &gfxDrawText);
     umkaAddFunc(umka, "drawRectangle", &gfxDrawRectangle);
+    umkaAddFunc(umka, "drawGrid", &gfxDrawGrid);
     umkaAddFunc(umka, "loadTexture", &gfxLoadTexture);
     umkaAddFunc(umka, "unloadTexture", &gfxUnloadTexture);
     umkaAddFunc(umka, "drawTexture", &gfxDrawTexture);

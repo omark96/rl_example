@@ -28,6 +28,7 @@ type CameraMode* = enum {
 
 fn drawText*(text: str, posX, posY, fontSize: int32, color: Color)
 fn drawRectangle*(posX, posY, width, height: int32, color: Color)
+fn drawGrid*(slices: int32, spacing: real32)
 fn loadTexture*(filename: str): Texture
 fn unloadTexture*(texture: Texture)
 fn drawTexture*(texture: Texture, x, y: int32, tint: Color)
