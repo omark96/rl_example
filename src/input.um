@@ -10,6 +10,16 @@ type MouseButton* = enum {
 
 
 type KeyboardKey* = enum {
+    KEY_ZERO = 48;
+    KEY_ONE = 49;
+    KEY_TWO = 50;
+    KEY_THREE = 51;
+    KEY_FOUR = 52;
+    KEY_FIVE = 53;
+    KEY_SIX = 54;
+    KEY_SEVEN = 55;
+    KEY_EIGHT = 56;
+    KEY_NINE = 57;
     KEY_A = 65;
 }
 

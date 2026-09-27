@@ -49,7 +49,7 @@ void gfxDrawTexQuad(UmkaStackSlot *params, UmkaStackSlot *result) {
     bool flipY = umkaGetParam(params, 4)->intVal;
     Color *tint = (Color *)umkaGetParam(params, 5);
 
-    Texture2D *texture = texturePoolGet(&g_resources.textures, *textureHandle);
+    Texture2D *texture = texturePoolGet(&g_ctx.textures, *textureHandle);
 
     DrawTexQuad(*texture, *pos, *right, *up, flipY, *tint);
 }
@@ -82,7 +82,7 @@ void gfxLoadTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
     Texture texture = LoadTexture(fileName);
     Handle handle;
     if (IsTextureValid(texture)) {
-        handle = texturePoolAdd(&g_resources.textures, texture);
+        handle = texturePoolAdd(&g_ctx.textures, texture);
     } else {
         handle = NULL_HANDLE;
     }
@@ -92,8 +92,8 @@ void gfxLoadTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
 
 void gfxUnloadTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
     Handle textureHandle = *(Handle *)umkaGetParam(params, 0);
-    Texture *texture = texturePoolGet(&g_resources.textures, textureHandle);
-    if (!texturePoolRemove(&g_resources.textures, textureHandle)) {
+    Texture *texture = texturePoolGet(&g_ctx.textures, textureHandle);
+    if (!texturePoolRemove(&g_ctx.textures, textureHandle)) {
         return;
     }
     if (IsTextureValid(*texture)) {
@@ -106,23 +106,23 @@ void gfxDrawTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
     int32_t x = umkaGetParam(params, 1)->intVal;
     int32_t y = umkaGetParam(params, 2)->intVal;
     Color *color = (Color *)umkaGetParam(params, 3);
-    Texture *texture = texturePoolGet(&g_resources.textures, textureHandle);
+    Texture *texture = texturePoolGet(&g_ctx.textures, textureHandle);
     DrawTexture(*texture, x, y, *color);
 }
 
 void gfxGetGameScreen(UmkaStackSlot *params, UmkaStackSlot *result) {
     Handle gameHandle = *(Handle *)umkaGetParam(params, 0);
-    Game *game = gamePoolGet(&g_resources.games, gameHandle);
+    Game *game = gamePoolGet(&g_ctx.games, gameHandle);
     *(Handle *)umkaGetResult(params, result)->ptrVal = game->screen;
 }
 
 void gfxGetGameScreenTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
     Handle renderTextureHandle = *(Handle *)umkaGetParam(params, 0);
     uint32_t textureId
-        = renderTexture2DPoolGet(&g_resources.renderTextures, renderTextureHandle)->texture.id;
+        = renderTexture2DPoolGet(&g_ctx.renderTextures, renderTextureHandle)->texture.id;
     Handle textureHandle = {0};
-    for (int i = 0; i < g_resources.textures.count; i++) {
-        TextureSlot slot = g_resources.textures.items[i];
+    for (int i = 0; i < g_ctx.textures.count; i++) {
+        TextureSlot slot = g_ctx.textures.items[i];
         Texture texture = slot.item;
         if (texture.id == textureId) {
             textureHandle.slot = i;

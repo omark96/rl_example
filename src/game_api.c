@@ -44,19 +44,27 @@ bool initUmka(Game *game) {
     return true;
 }
 
-void runGame(Game *game) {
+bool compareHandles(Handle a, Handle b) { return a.generation == b.generation && a.slot == b.slot; }
+
+bool isRootGame(Handle handle) { return compareHandles(handle, g_ctx.rootGame); }
+
+bool isNullHandle(Handle handle) { return compareHandles(handle, NULL_HANDLE); }
+
+void runGame(Handle handle) {
+    Game *game = gamePoolGet(&g_ctx.games, handle);
+
     for (int i = 0; i < game->childCount; i++) {
-        Game *child = gamePoolGet(&g_resources.games, game->children[i]);
-        runGame(child);
+        runGame(game->children[i]);
     }
 
     if (game->umka == NULL) {
         return;
     }
 
+    g_ctx.currentGame = handle;
+
     switch (game->state) {
     case STATE_ACTIVE:
-        umkaCall(game->umka, &game->input);
         umkaCall(game->umka, &game->update);
         break;
     case STATE_ENABLED:
@@ -67,19 +75,23 @@ void runGame(Game *game) {
     }
 }
 
-void drawGame(Game *game) {
+void drawGame(Handle handle) {
+    Game *game = gamePoolGet(&g_ctx.games, handle);
+
     for (int i = 0; i < game->childCount; i++) {
-        Game *child = gamePoolGet(&g_resources.games, game->children[i]);
-        drawGame(child);
+        drawGame(game->children[i]);
     }
-    RenderTexture2D renderTexture
-        = *renderTexture2DPoolGet(&g_resources.renderTextures, game->screen);
+
+    g_ctx.currentGame = handle;
+
+    RenderTexture2D renderTexture = *renderTexture2DPoolGet(&g_ctx.renderTextures, game->screen);
     BeginTextureMode(renderTexture);
     ClearBackground(BLACK);
     if (game->umka == NULL) {
         DrawText(TextFormat("Invalid game: %s", game->name), 200, 200, 40, WHITE);
         return;
     }
+
     switch (game->state) {
     case STATE_ACTIVE:
     case STATE_ENABLED:
@@ -90,6 +102,74 @@ void drawGame(Game *game) {
         break;
     }
     EndTextureMode();
+}
+
+void handleInput(Handle handle) {
+    Game *game = gamePoolGet(&g_ctx.games, handle);
+    g_ctx.currentGame = handle;
+
+    switch (game->state) {
+    case STATE_ACTIVE:
+        umkaCall(game->umka, &game->input);
+        break;
+    case STATE_ENABLED:
+        if (isRootGame(handle)) {
+            umkaCall(game->umka, &game->input);
+        }
+        break;
+    case STATE_IDLE:
+    case STATE_HIDDEN:
+        break;
+    }
+
+    for (int i = 0; i < game->childCount; i++) {
+        handleInput(game->children[i]);
+    }
+}
+
+Game *getCurrentGame() { return gamePoolGet(&g_ctx.games, g_ctx.currentGame); }
+
+Handle getActiveGameHandle() {
+    for (int i = 0; i < g_ctx.games.count; i++) {
+        Game game = g_ctx.games.items[i].item;
+        if (game.state == STATE_ACTIVE) {
+            return game.handle;
+        }
+    }
+    return NULL_HANDLE;
+}
+
+void setGameState(Handle handle, GameState newState) {
+    Game *game = gamePoolGet(&g_ctx.games, handle);
+    game->state = newState;
+}
+
+GameState getGameState(Handle handle) {
+    Game *game = gamePoolGet(&g_ctx.games, handle);
+    return game->state;
+}
+
+void setActiveGame(Handle handle) {
+    Game *game = gamePoolGet(&g_ctx.games, handle);
+
+    if (isNullHandle(handle)) {
+        return;
+    }
+    Handle activeHandle = getActiveGameHandle();
+    if (!isNullHandle(activeHandle)) {
+        if (isRootGame(activeHandle)) {
+            setGameState(activeHandle, STATE_ENABLED);
+        } else {
+            setGameState(activeHandle, STATE_HIDDEN);
+        }
+    }
+
+    setGameState(handle, STATE_ACTIVE);
+
+    for (int i = 0; i < game->childCount; i++) {
+        Handle childHandle = game->children[i];
+        setGameState(childHandle, STATE_ENABLED);
+    }
 }
 
 void onWarning(UmkaError *err) {

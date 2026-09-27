@@ -40,6 +40,7 @@ typedef enum GameState {
 } GameState;
 
 typedef struct Game {
+    Handle handle;
     char *name;
     Umka *umka;
     GameState state;
@@ -64,21 +65,41 @@ typedef struct Game {
 #define POOL_MAX_CAP MAX_GAMES
 #include "pool.h"
 
-typedef struct GlobalResources {
+typedef struct InputContext {
+    uint32_t handledKeys[512];
+    uint32_t handledMouseButtons[16];
+    Vector2 mousePosition;
+    float mouseWheelMove;
+} InputContext;
+
+typedef struct GlobalContext {
     GamePool games;
     TexturePool textures;
     RenderTexture2DPool renderTextures;
-} GlobalResources;
 
-extern GlobalResources g_resources;
+    InputContext inputs;
+
+    Handle rootGame;
+    Handle currentGame;
+
+    float lastCheckedGames;
+} GlobalContext;
+
+extern GlobalContext g_ctx;
 
 bool initUmka(Game *gameApi);
-void drawGame(Game *game);
-void updateGame(Game *game);
+void drawGame(Handle handle);
+void updateGame(Handle handle);
+
+Game *getCurrentGame();
+Handle getActiveGameHandle();
+void setActiveGame(Handle handle);
+void setGameState(Handle handle, GameState newState);
+GameState getGameState(Handle handle);
 
 Game *gameFromUmka(Umka *umka) {
-    GamePool games = g_resources.games;
-    for (uint8_t i = 0; i <= games.liveCount; i++) {
+    GamePool games = g_ctx.games;
+    for (uint8_t i = 0; i <= games.count; i++) {
         if (games.items[i].item.umka == umka) {
             return &games.items[i].item;
         }
@@ -87,8 +108,8 @@ Game *gameFromUmka(Umka *umka) {
 }
 
 Handle handleFromUmka(Umka *umka) {
-    GamePool games = g_resources.games;
-    for (uint8_t i = 0; i <= games.liveCount; i++) {
+    GamePool games = g_ctx.games;
+    for (uint8_t i = 0; i <= games.count; i++) {
         GameSlot slot = games.items[i];
         if (slot.item.umka == umka) {
             return (Handle){.slot = i, .generation = slot.generation};

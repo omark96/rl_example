@@ -8,8 +8,17 @@ void inputIsMouseButtonPressed(UmkaStackSlot *params, UmkaStackSlot *result) {
 }
 
 void inputIsKeyPressed(UmkaStackSlot *params, UmkaStackSlot *result) {
+    Handle gameHandle = getCurrentGame()->handle;
+
     KeyboardKey key = umkaGetParam(params, 0)->intVal;
     bool pressed = IsKeyPressed(key);
+    uint32_t *inputSlot = &g_ctx.inputs.handledKeys[key];
+    if (*inputSlot == 0) {
+        *inputSlot = gameHandle.slot;
+    } else if (*inputSlot != gameHandle.slot) {
+        pressed = false;
+    }
+
     umkaGetResult(params, result)->intVal = pressed;
 }
 

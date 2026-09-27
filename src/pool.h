@@ -39,7 +39,7 @@ void POOL_FN(SetDefault)(POOL_TYPE *pool, T item);
 #ifdef POOL_IMPLEMENTATION
 void POOL_FN(Init)(POOL_TYPE *pool, T defaultItem) {
     pool->items = malloc(sizeof(SLOT_TYPE) * POOL_INIT_SIZE);
-    pool->count = 0;
+    pool->count = 1;
     pool->liveCount = 0;
     pool->cap = POOL_INIT_SIZE;
     pool->firstFree = 0;
@@ -75,11 +75,11 @@ Handle POOL_FN(Add)(POOL_TYPE *pool, T item) {
     if (slotId != 0) {
         pool->firstFree = pool->items[slotId].nextFree;
     } else {
-        pool->count += 1;
         if (pool->count >= pool->cap) {
             bool ok = POOL_FN(Grow)(pool);
         }
         slotId = pool->count;
+        pool->count += 1;
     }
 
     pool->liveCount += 1;
@@ -128,7 +128,7 @@ T *POOL_FN(Get)(POOL_TYPE *pool, Handle handle) {
     return &pool->items[slotId].item;
 }
 
-void *POOL_FN(GetAllHandles)(POOL_TYPE *pool, Handle *handles, uint32_t size) {
+int POOL_FN(GetAllHandles)(POOL_TYPE *pool, Handle *handles, uint32_t size) {
     uint32_t max = size < pool->liveCount ? size : pool->liveCount;
     uint32_t next = 0;
     for (uint32_t i = 0; i <= pool->count; i++) {
@@ -141,6 +141,7 @@ void *POOL_FN(GetAllHandles)(POOL_TYPE *pool, Handle *handles, uint32_t size) {
             break;
         }
     }
+    return next;
 }
 
 void POOL_FN(SetDefault)(POOL_TYPE *pool, T item) { pool->items[0].item = item; }

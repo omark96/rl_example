@@ -142,4 +142,8 @@ fn input() {
             delete(state.sprites, len(state.sprites) - 1)
         }
     }
+    if input::isKeyPressed(.KEY_ZERO){
+        parentHandle := core::getParentGame()
+        core::setActiveGame(parentHandle)
+    }
 }

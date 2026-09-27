@@ -1,6 +1,22 @@
-type Game* = struct {_: uint}
+type Game* = struct {
+    slot: uint32
+    generation: uint32
+}
+
+type GameState* = enum {
+    DISABLED;
+    HIDDEN;
+    IDLE;
+    ENABLED;
+    ACTIVE;
+}
 
 fn print*(msg: str)
 fn getAllGames*(): []Game
+fn getParentGame*(): Game
 fn getGameName*(game: Game): str
 fn registerGame*(name: str): Game
+fn currentGameState*(): GameState
+fn setGameState*(game: Game, newState: GameState)
+fn getGameState*(game: Game)
+fn setActiveGame*(game: Game)

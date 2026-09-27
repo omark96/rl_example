@@ -7,37 +7,42 @@
 #include "stdio.h"
 #include "stdlib.h"
 
-GlobalResources g_resources;
+GlobalContext g_ctx;
 
 Handle gameHandles[MAX_GAMES];
 
-Handle root;
 float lastCheckedGames = 0;
 
 void UpdateDrawFrame() {
-    Game *rootGame = gamePoolGet(&g_resources.games, root);
-    runGame(rootGame);
+    g_ctx.inputs = (InputContext){0};
+    handleInput(g_ctx.rootGame);
+    runGame(g_ctx.rootGame);
 
     BeginDrawing();
-    drawGame(rootGame);
-    RenderTexture2D *rootScreen
-        = renderTexture2DPoolGet(&g_resources.renderTextures, rootGame->screen);
-    DrawTextureRec(rootScreen->texture,
-                   (Rectangle){0, 0, rootScreen->texture.width, -rootScreen->texture.height},
+    drawGame(g_ctx.rootGame);
+    Handle activeGameHandle = getActiveGameHandle();
+    Game *activeGame = gamePoolGet(&g_ctx.games, activeGameHandle);
+    RenderTexture2D *activeScreen
+        = renderTexture2DPoolGet(&g_ctx.renderTextures, activeGame->screen);
+    DrawTextureRec(activeScreen->texture,
+                   (Rectangle){0, 0, activeScreen->texture.width, -activeScreen->texture.height},
                    (Vector2){0, 0}, WHITE);
+    // Game *rootGame = gamePoolGet(&g_ctx.games, g_ctx.rootGame);
+    // RenderTexture2D *rootScreen = renderTexture2DPoolGet(&g_ctx.renderTextures,
+    // rootGame->screen); DrawTextureRec(rootScreen->texture,
+    //                (Rectangle){0, 0, rootScreen->texture.width, -rootScreen->texture.height},
+    //                (Vector2){0, 0}, WHITE);
     EndDrawing();
 
     lastCheckedGames += GetFrameTime();
     if (lastCheckedGames > 0.25) {
-        checkForGameUpdates(&g_resources.games);
+        checkForGameUpdates(&g_ctx.games);
         lastCheckedGames = 0;
     }
 }
 
 int main() {
     int gameCount = 0;
-
-    Game game;
 
     const int screenWidth = 1920;
     const int screenHeight = 1080;
@@ -51,24 +56,32 @@ int main() {
     printf("Number of games: %d\n", gamePaths.count);
     printf("First game: %s\n", gamePaths.paths[0] + 6);
 
-    texturePoolInit(&g_resources.textures, LoadTexture("defaultAssets/default_texture.png"));
+    texturePoolInit(&g_ctx.textures, LoadTexture("defaultAssets/default_texture.png"));
+    RenderTexture2D defaultRenderTexure = {0};
+    renderTexture2DPoolInit(&g_ctx.renderTextures, defaultRenderTexure);
+    Game defaultGame = {0};
+    gamePoolInit(&g_ctx.games, defaultGame);
 
     for (int i = 0; i < gameCount; i++) {
         char *gameName = gamePaths.paths[i] + 6;
-        gameHandles[i] = gamePoolAdd(&g_resources.games, (Game){0});
-        Game *game = gamePoolGet(&g_resources.games, gameHandles[i]);
+        Handle gameHandle = gamePoolAdd(&g_ctx.games, (Game){0});
+        Game *game = gamePoolGet(&g_ctx.games, gameHandle);
+        game->handle = gameHandle;
+        gameHandles[i] = gameHandle;
+        g_ctx.currentGame = gameHandle;
         initGame(game, gameName);
         RenderTexture2D renderTexture = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
-        game->screen = renderTexture2DPoolAdd(&g_resources.renderTextures, renderTexture);
-        texturePoolAdd(&g_resources.textures, renderTexture.texture);
+        game->screen = renderTexture2DPoolAdd(&g_ctx.renderTextures, renderTexture);
+        texturePoolAdd(&g_ctx.textures, renderTexture.texture);
         game->state = STATE_ENABLED;
         if (strcmp(gameName, "main") == 0) {
             game->state = STATE_ACTIVE;
-            root = gameHandles[i];
+            g_ctx.rootGame = gameHandle;
         }
     }
     for (int i = 0; i < gameCount; i++) {
-        Game *game = gamePoolGet(&g_resources.games, gameHandles[i]);
+        Game *game = gamePoolGet(&g_ctx.games, gameHandles[i]);
+        g_ctx.currentGame = game->handle;
         if (game->umka != NULL) {
             umkaCall(game->umka, &game->init);
         }
@@ -82,7 +95,7 @@ int main() {
     CloseWindow();
 
     for (int i = 0; i < gameCount; i++) {
-        freeGame(gamePoolGet(&g_resources.games, gameHandles[i]));
+        freeGame(gamePoolGet(&g_ctx.games, gameHandles[i]));
     }
 #endif // PLATFORM_WEB
 
