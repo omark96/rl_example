@@ -7,6 +7,7 @@ import (
 type State = struct {
     games: []core::Game
     screens: []gfx::RenderTexture
+    terminal: gfx::Model
     camera: gfx::Camera
 
 }
@@ -27,14 +28,16 @@ fn init() {
     camera.fovy = 45
     camera.projection = 0
     state.camera = camera
+
+    state.terminal = gfx::loadModel("defaultAssets/terminal.gltf")
 }
 
 fn update() {
 }
 
 fn input() {
-    gfx::updateCamera(&state.camera, .CAMERA_FREE)
     if core::currentGameState() == .ACTIVE{
+        gfx::updateCamera(&state.camera, .FIRST_PERSON)
         if input::isKeyPressed(.KEY_ONE){
             core::setActiveGame(state.games[0])
         }
@@ -48,7 +51,8 @@ fn draw() {
     gfx::drawGrid(100, 1)
     screen := gfx::getGameScreen(state.games[0])
     texture := gfx::getGameScreenTexture(screen);
-    gfx::drawTexQuad(texture, {0, 0.5625, 0}, {1, 0, 0}, {0, 0.5625, 0}, true, {255, 255, 255, 255})
+    gfx::replaceTextureOnModel(state.terminal, 2, texture)
+    gfx::drawModel(state.terminal, {3, 0, 0}, 1.0/6.0, {255, 255, 255, 255})
     gfx::endMode3D()
 }
 

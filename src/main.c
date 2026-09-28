@@ -46,7 +46,7 @@ int main() {
 
     const int screenWidth = 1920;
     const int screenHeight = 1080;
-
+    SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(screenWidth, screenHeight, "_dev raylib basic window");
     SetTargetFPS(60);
 

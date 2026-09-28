@@ -3,6 +3,7 @@ import "core.um"
 type Color* = struct {r, g, b, a: uint8}
 type Texture* = struct {_: uint}
 type RenderTexture* = struct {_: uint}
+type Model* = struct {_: uint}
 type Vector3* = struct {
     x: real32
     y: real32
@@ -18,11 +19,11 @@ type Camera* = struct {
 }
 
 type CameraMode* = enum {
-    CAMERA_CUSTOM = 0;              // Camera custom, controlled by user (UpdateCamera() does nothing)
-    CAMERA_FREE;                    // Camera free mode
-    CAMERA_ORBITAL;                 // Camera orbital, around target, zoom supported
-    CAMERA_FIRST_PERSON;            // Camera first person
-    CAMERA_THIRD_PERSON;             // Camera third person
+    CUSTOM = 0;              // Camera custom, controlled by user (UpdateCamera() does nothing)
+    FREE;                    // Camera free mode
+    ORBITAL;                 // Camera orbital, around target, zoom supported
+    FIRST_PERSON;            // Camera first person
+    THIRD_PERSON;             // Camera third person
 }
 
 
@@ -32,6 +33,9 @@ fn drawGrid*(slices: int32, spacing: real32)
 fn loadTexture*(filename: str): Texture
 fn unloadTexture*(texture: Texture)
 fn drawTexture*(texture: Texture, x, y: int32, tint: Color)
+fn loadModel*(fileName: str): Model
+fn drawModel*(model: Model, position: Vector3, scale: real32, color: Color)
+fn replaceTextureOnModel*(model: Model, materialIndex: int32, texture: Texture)
 fn beginMode3D*(camera: Camera)
 fn endMode3D*()
 fn drawTexQuad*(texture: Texture, pos, right, up: Vector3, flipY: bool, tint: Color)

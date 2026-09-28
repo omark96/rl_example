@@ -18,6 +18,7 @@ typedef struct Handle {
 #define MAX_GAMES 10
 #define MAX_TEXTURES 256
 #define MAX_RENDER_TEXTURES 8
+#define MAX_MODELS 256
 
 #define T Texture
 #define F_PREFIX texture
@@ -29,6 +30,12 @@ typedef struct Handle {
 #define F_PREFIX renderTexture2D
 #define POOL_IMPLEMENTATION
 #define POOL_MAX_CAP MAX_RENDER_TEXTURES
+#include "pool.h"
+
+#define T Model
+#define F_PREFIX model
+#define POOL_IMPLEMENTATION
+#define POOL_MAX_CAP MAX_MODELS
 #include "pool.h"
 
 typedef enum GameState {
@@ -76,6 +83,7 @@ typedef struct GlobalContext {
     GamePool games;
     TexturePool textures;
     RenderTexture2DPool renderTextures;
+    ModelPool models;
 
     InputContext inputs;
 

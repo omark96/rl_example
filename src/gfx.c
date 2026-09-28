@@ -87,7 +87,18 @@ void gfxLoadTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
         handle = NULL_HANDLE;
     }
     *(Handle *)umkaGetResult(params, result)->ptrVal = handle;
-    printf("New texture handle: %llu\n", handle);
+}
+
+void gfxLoadModel(UmkaStackSlot *params, UmkaStackSlot *result) {
+    const char *fileName = (const char *)umkaGetParam(params, 0)->ptrVal;
+    Model model = LoadModel(fileName);
+    Handle handle;
+    if (IsModelValid(model)) {
+        handle = modelPoolAdd(&g_ctx.models, model);
+    } else {
+        handle = NULL_HANDLE;
+    }
+    *(Handle *)umkaGetResult(params, result)->ptrVal = handle;
 }
 
 void gfxUnloadTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
@@ -108,6 +119,25 @@ void gfxDrawTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
     Color *color = (Color *)umkaGetParam(params, 3);
     Texture *texture = texturePoolGet(&g_ctx.textures, textureHandle);
     DrawTexture(*texture, x, y, *color);
+}
+
+void gfxDrawModel(UmkaStackSlot *params, UmkaStackSlot *result) {
+    Handle modelHandle = *(Handle *)umkaGetParam(params, 0);
+    Vector3 position = *(Vector3 *)umkaGetParam(params, 1);
+    float scale = umkaGetParam(params, 2)->real32Val;
+    Color color = *(Color *)umkaGetParam(params, 3);
+    Model model = *modelPoolGet(&g_ctx.models, modelHandle);
+    DrawModel(model, position, scale, color);
+}
+
+void gfxReplaceTextureOnModel(UmkaStackSlot *params, UmkaStackSlot *result) {
+    Handle modelHandle = *(Handle *)umkaGetParam(params, 0);
+    uint32_t materialIndex = umkaGetParam(params, 1)->intVal;
+    Handle textureHandle = *(Handle *)umkaGetParam(params, 2);
+
+    Model *model = modelPoolGet(&g_ctx.models, modelHandle);
+    Texture texture = *texturePoolGet(&g_ctx.textures, textureHandle);
+    model->materials[materialIndex].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
 }
 
 void gfxGetGameScreen(UmkaStackSlot *params, UmkaStackSlot *result) {
@@ -146,6 +176,10 @@ void gfxAddUmkaModule(Umka *umka) {
     umkaAddFunc(umka, "loadTexture", &gfxLoadTexture);
     umkaAddFunc(umka, "unloadTexture", &gfxUnloadTexture);
     umkaAddFunc(umka, "drawTexture", &gfxDrawTexture);
+    umkaAddFunc(umka, "loadModel", &gfxLoadModel);
+    // umkaAddFunc(umka, "unloadModel", &gfxUnloadModel);
+    umkaAddFunc(umka, "drawModel", &gfxDrawModel);
+    umkaAddFunc(umka, "replaceTextureOnModel", &gfxReplaceTextureOnModel);
     umkaAddFunc(umka, "drawTexQuad", &gfxDrawTexQuad);
     umkaAddFunc(umka, "getGameScreen", &gfxGetGameScreen);
     umkaAddFunc(umka, "getGameScreenTexture", &gfxGetGameScreenTexture);
