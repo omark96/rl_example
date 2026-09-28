@@ -1,11 +1,11 @@
 type MouseButton* = enum {
-    MOUSE_BUTTON_LEFT    = 0;
-    MOUSE_BUTTON_RIGHT   = 1;
-    MOUSE_BUTTON_MIDDLE  = 2;
-    MOUSE_BUTTON_SIDE    = 3;
-    MOUSE_BUTTON_EXTRA   = 4;
-    MOUSE_BUTTON_FORWARD = 5;
-    MOUSE_BUTTON_BACK    = 6;
+    LEFT    = 0;
+    RIGHT   = 1;
+    MIDDLE  = 2;
+    SIDE    = 3;
+    EXTRA   = 4;
+    FORWARD = 5;
+    BACK    = 6;
 }
 
 
@@ -21,10 +21,22 @@ type KeyboardKey* = enum {
     KEY_EIGHT = 56;
     KEY_NINE = 57;
     KEY_A = 65;
+
+    KEY_LEFT_SHIFT = 340
+    KEY_LEFT_CONTROL = 341
+    KEY_LEFT_ALT = 342
+    KEY_LEFT_SUPER = 343
+    KEY_RIGHT_SHIFT = 344
+    KEY_RIGHT_CONTROL = 345
+    KEY_RIGHT_ALT = 346
+    KEY_RIGHT_SUPER = 347
 }
 
 fn isMouseButtonPressed*(button: MouseButton): bool
 fn getMouseX*(): int32
 fn getMouseY*(): int32
+
+fn disableCursor*()
+fn enableCursor*()
 
 fn isKeyPressed*(key: KeyboardKey): bool

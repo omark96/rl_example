@@ -119,7 +119,8 @@ fn draw() {
 }
 
 fn input() {
-    if input::isMouseButtonPressed(.MOUSE_BUTTON_LEFT){
+    input::enableCursor()
+    if input::isMouseButtonPressed(.LEFT){
         x := input::getMouseX()
         y := input::getMouseY()
         state.pos = {x, y, y, x}
@@ -134,7 +135,7 @@ fn input() {
         sprite := Sprite{texture, x, y, {255, 255, 255, 255}}
         state.sprites = append(state.sprites, sprite)
     }
-    if input::isMouseButtonPressed(.MOUSE_BUTTON_RIGHT){
+    if input::isMouseButtonPressed(.RIGHT){
         if len(state.sprites) > 0 {
             texture := state.sprites[len(state.sprites) - 1].texture
             printf("Unload from umka\n")

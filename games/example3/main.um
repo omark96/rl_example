@@ -1,0 +1,34 @@
+import (
+    "gfx.um"
+    "input.um"
+    "core.um"
+)
+
+type State = struct {
+}
+
+var state: State = {}
+
+fn hotReload(): ^State{
+    return &state
+}
+
+fn init() {
+}
+
+fn update() {
+}
+
+fn input() {
+    if input::isKeyPressed(.KEY_ZERO){
+        parentHandle := core::getParentGame()
+        core::setActiveGame(parentHandle)
+    }
+}
+
+fn draw() {
+    gfx::clearBackground({220, 220, 220, 255})
+    gfx::drawText("Example3", 10, 100, 20, {0, 0 ,0 , 255})
+}
+
+

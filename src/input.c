@@ -32,11 +32,24 @@ void inputGetMouseY(UmkaStackSlot *params, UmkaStackSlot *result) {
     umkaGetResult(params, result)->intVal = y;
 }
 
+void inputDisableCursor(UmkaStackSlot *params, UmkaStackSlot *result) {
+    if (!IsCursorHidden()) {
+        DisableCursor();
+    }
+}
+
+void inputEnableCursor(UmkaStackSlot *params, UmkaStackSlot *result) {
+    if (IsCursorHidden()) {
+        EnableCursor();
+    }
+}
 void inputAddUmkaModule(Umka *umka) {
     umkaAddFunc(umka, "getMouseX", &inputGetMouseX);
     umkaAddFunc(umka, "getMouseY", &inputGetMouseY);
     umkaAddFunc(umka, "isMouseButtonPressed", &inputIsMouseButtonPressed);
     umkaAddFunc(umka, "isKeyPressed", &inputIsKeyPressed);
+    umkaAddFunc(umka, "disableCursor", &inputDisableCursor);
+    umkaAddFunc(umka, "enableCursor", &inputEnableCursor);
 
     const char *umSourceNames[] = {"input.um"};
     const char *umSourceFiles[] = {(const char[]){

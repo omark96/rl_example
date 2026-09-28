@@ -21,6 +21,9 @@ fn hotReload(): ^State{
 fn init() {
     game := core::registerGame("example")
     state.games = append(state.games, game)
+    
+    game2 := core::registerGame("example3")
+    state.games = append(state.games, game2)
 
     camera := gfx::Camera{}
     camera.position = {0, 1, 2}
@@ -47,14 +50,22 @@ fn input() {
     }
 }
 
+fn drawTerminal(game: core::Game, pos: gfx::Vector3) {
+    screen := gfx::getGameScreen(game)
+    texture := gfx::getGameScreenTexture(screen);
+    gfx::replaceTextureOnModel(state.terminal, 2, texture)
+    gfx::drawModel(state.terminal, pos, 1.0/6.0, {255, 255, 255, 255})
+}
+
 fn draw() {
     gfx::clearBackground({30, 200, 30, 255})
     gfx::beginMode3D(state.camera)
     gfx::drawGrid(100, 1)
-    screen := gfx::getGameScreen(state.games[0])
-    texture := gfx::getGameScreenTexture(screen);
-    gfx::replaceTextureOnModel(state.terminal, 2, texture)
-    gfx::drawModel(state.terminal, {3, 0, 0}, 1.0/6.0, {255, 255, 255, 255})
+    
+    for i, game in state.games {
+        drawTerminal(game, {3 * i, 0, 0})
+    }
+
     gfx::endMode3D()
 }
 
