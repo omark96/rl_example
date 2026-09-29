@@ -9,7 +9,6 @@ type State = struct {
     screens: []gfx::RenderTexture
     terminal: gfx::Model
     camera: gfx::Camera
-    mouseCaptured: bool
 }
 
 var state: State = {}
@@ -41,12 +40,10 @@ fn input() {
         if input::isKeyPressed(.KEY_ONE){
             core::setActiveGame(state.games[0])
         }
-        if !state.mouseCaptured && input::isMouseButtonPressed(.LEFT) {
-            state.mouseCaptured = true;
+        if input::isMouseButtonPressed(.LEFT) {
             input::disableCursor()
         }
-        if state.mouseCaptured && input::isKeyPressed(.KEY_LEFT_CONTROL){
-            state.mouseCaptured = false;
+        if input::isKeyPressed(.KEY_LEFT_CONTROL){
             input::enableCursor()
         }
     }

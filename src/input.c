@@ -33,14 +33,16 @@ void inputGetMouseY(UmkaStackSlot *params, UmkaStackSlot *result) {
 }
 
 void inputDisableCursor(UmkaStackSlot *params, UmkaStackSlot *result) {
-    if (!IsCursorHidden()) {
+    if (!getCurrentGame()->cursorDisabled) {
         DisableCursor();
+        getCurrentGame()->cursorDisabled = true;
     }
 }
 
 void inputEnableCursor(UmkaStackSlot *params, UmkaStackSlot *result) {
-    if (IsCursorHidden()) {
+    if (getCurrentGame()->cursorDisabled) {
         EnableCursor();
+        getCurrentGame()->cursorDisabled = false;
     }
 }
 void inputAddUmkaModule(Umka *umka) {

@@ -166,6 +166,12 @@ void setActiveGame(Handle handle) {
 
     setGameState(handle, STATE_ACTIVE);
 
+    if (game->cursorDisabled) {
+        DisableCursor();
+    } else {
+        EnableCursor();
+    }
+
     for (int i = 0; i < game->childCount; i++) {
         Handle childHandle = game->children[i];
         setGameState(childHandle, STATE_ENABLED);

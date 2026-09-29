@@ -34,6 +34,8 @@ fn init() {
     state.camera = camera
 
     state.terminal = gfx::loadModel("defaultAssets/terminal.gltf")
+
+    input::disableCursor();
 }
 
 fn update() {
@@ -47,6 +49,9 @@ fn input() {
     if input::isKeyPressed(.KEY_ZERO){
         parentHandle := core::getParentGame()
         core::setActiveGame(parentHandle)
+    }
+    if input::isMouseButtonPressed(.LEFT) {
+        input::disableCursor();
     }
 }
 

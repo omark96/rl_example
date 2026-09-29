@@ -59,6 +59,8 @@ typedef struct Game {
     Handle children[16];
     uint8_t childCount;
 
+    bool cursorDisabled;
+
     UmkaFuncContext init;
     UmkaFuncContext update;
     UmkaFuncContext draw;
