@@ -63,7 +63,7 @@ int main() {
     gamePoolInit(&g_ctx.games, defaultGame);
 
     for (int i = 0; i < gameCount; i++) {
-        char *gameName = gamePaths.paths[i] + 6;
+        const char *gameName = GetFileName(gamePaths.paths[i]);
         Handle gameHandle = gamePoolAdd(&g_ctx.games, (Game){0});
         Game *game = gamePoolGet(&g_ctx.games, gameHandle);
         game->handle = gameHandle;
@@ -75,8 +75,11 @@ int main() {
         texturePoolAdd(&g_ctx.textures, renderTexture.texture);
         game->state = STATE_ENABLED;
         if (strcmp(gameName, "main") == 0) {
-            game->state = STATE_ACTIVE;
             g_ctx.rootGame = gameHandle;
+        }
+        if (strcmp(gameName, "example3") == 0) {
+            game->state = STATE_ACTIVE;
+            game->cursorDisabled = 1;
         }
     }
     for (int i = 0; i < gameCount; i++) {
@@ -86,6 +89,7 @@ int main() {
             umkaCall(game->umka, &game->init);
         }
     }
+
 #ifdef PLATFORM_WEB
     emscripten_set_main_loop(UpdateDrawFrame, 0, 1);
 #else  // PLATFORM_WEB

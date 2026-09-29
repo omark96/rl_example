@@ -3,7 +3,7 @@
 #include "gfx.c"
 #include "input.c"
 
-bool initGame(Game *game, char *name) {
+bool initGame(Game *game, const char *name) {
     game->name = strdup(name);
     return initUmka(game);
 }
@@ -412,30 +412,32 @@ bool reloadGame(Game *curr, long modTime) {
 }
 
 void checkForGameUpdates(GamePool *games) {
-    FilePathList gamePaths = LoadDirectoryFilesEx("games", "DIRS*", false);
+    FilePathList gameDirs = LoadDirectoryFilesEx("games", "DIRS*", false);
 
-    int gameCount = gamePaths.count;
-
-    char gamePath[PATH_MAX];
-
-    for (int i = 0; i < gameCount; i++) {
-        char *gameName = gamePaths.paths[i] + 6;
-        snprintf(gamePath, sizeof(gamePath), "games/%s/main.um", gameName);
+    for (int i = 0; i < gameDirs.count; i++) {
+        const char *gameDir = gameDirs.paths[i];
+        const char *gameName = GetFileName(gameDir);
 
         for (int j = 0; j < games->count; j++) {
             Game *game = &games->items[j].item;
-            if (!game->name) {
+            if (!game->name || strcmp(game->name, gameName) != 0) {
                 continue;
             }
-            if (strcmp(game->name, gameName) == 0) {
-                long lastModified = GetFileModTime(gamePath);
-                if (lastModified > game->lastModified) {
-                    reloadGame(game, lastModified);
+            long lastModified = 0;
+            FilePathList umkaFiles = LoadDirectoryFilesEx(gameDir, ".um", true);
+            for (uint32_t i = 0; i < umkaFiles.count; i++) {
+                long modTime = GetFileModTime(umkaFiles.paths[i]);
+                if (modTime > lastModified) {
+                    lastModified = modTime;
                 }
-                break;
             }
+            UnloadDirectoryFiles(umkaFiles);
+            if (lastModified > game->lastModified) {
+                reloadGame(game, lastModified);
+            }
+            break;
         }
     }
 
-    UnloadDirectoryFiles(gamePaths);
+    UnloadDirectoryFiles(gameDirs);
 }

@@ -2,6 +2,7 @@ import (
     "gfx.um"
     "input.um"
     "core.um"
+    slib = "dir/some_lib.um"
 )
 
 type State = struct {
@@ -17,9 +18,11 @@ fn init() {
 }
 
 fn update() {
+    slib::printEight();
 }
 
 fn input() {
+    input::enableCursor()
     if input::isKeyPressed(.KEY_ZERO){
         parentHandle := core::getParentGame()
         core::setActiveGame(parentHandle)

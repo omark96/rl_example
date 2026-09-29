@@ -46,6 +46,9 @@ fn input() {
     if input::isKeyPressed(.KEY_ONE){
         core::setActiveGame(state.games[0])
     }
+    if input::isKeyPressed(.KEY_TWO){
+        core::setActiveGame(state.games[1])
+    }
     if input::isKeyPressed(.KEY_ZERO){
         parentHandle := core::getParentGame()
         core::setActiveGame(parentHandle)
