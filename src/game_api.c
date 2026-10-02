@@ -2,6 +2,7 @@
 #include "core.c"
 #include "gfx.c"
 #include "input.c"
+#include "sdf.c"
 
 bool initGame(Game *game, const char *name) {
     game->name = strdup(name);
@@ -22,6 +23,7 @@ bool initUmka(Game *game) {
         coreAddUmkaModule(game->umka);
         gfxAddUmkaModule(game->umka);
         inputAddUmkaModule(game->umka);
+        sdfAddUmkaModule(game->umka);
 
         umkaOk = umkaCompile(game->umka);
     }

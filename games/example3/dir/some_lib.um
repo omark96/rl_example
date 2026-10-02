@@ -1,3 +1,0 @@
-fn printEight*() {
-    printf("8\n")
-}

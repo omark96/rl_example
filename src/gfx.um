@@ -4,10 +4,30 @@ type Color* = struct {r, g, b, a: uint8}
 type Texture* = struct {_: uint}
 type RenderTexture* = struct {_: uint}
 type Model* = struct {_: uint}
+
+type Vector2* = struct {
+    x: real32
+    y: real32
+}
+
 type Vector3* = struct {
     x: real32
     y: real32
     z: real32
+}
+
+type Vector4* = struct {
+    x: real32
+    y: real32
+    z: real32
+    w: real32
+}
+
+type Rectangle* = struct {
+    x: real32
+    y: real32
+    w: real32
+    h: real32
 }
 
 type Camera* = struct {
@@ -43,3 +63,7 @@ fn updateCamera*(camera: ^Camera, mode: CameraMode)
 fn getGameScreen*(game: core::Game): RenderTexture
 fn getGameScreenTexture*(screen: RenderTexture): Texture
 fn clearBackground*(color: Color)
+
+fn colorToVec4*(color: Color): Vector4 {
+    return Vector4{color.r / 255.0, color.g / 255.0, color.b / 255.0, color.a / 255.0}
+}

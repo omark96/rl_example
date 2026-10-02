@@ -2,23 +2,26 @@ import (
     "gfx.um"
     "input.um"
     "core.um"
-    slib = "dir/some_lib.um"
+    nui = "dir/nodeui.um"
+    "sdf.um"
 )
 
 type State = struct {
+    node: nui::Node
 }
 
-var state: State = {}
+var state: State = {
+}
 
 fn hotReload(): ^State{
     return &state
 }
 
 fn init() {
+    state.node = {200, 200, 400, 300}
 }
 
 fn update() {
-    slib::printEight();
 }
 
 fn input() {
@@ -30,8 +33,14 @@ fn input() {
 }
 
 fn draw() {
-    gfx::clearBackground({220, 220, 220, 255})
-    gfx::drawText("Example3", 10, 100, 20, {0, 0 ,0 , 255})
+    gfx::clearBackground({20, 20, 20, 255})
+    sdf::beginSdfMode()
+
+    state.node.draw()
+    sdf::drawLine({800, 100}, {1000, 200}, 20, {200, 50, 50, 255})
+    sdf::drawCircle({1000, 400}, 200, {50, 150, 50, 255})
+    sdf::endSdfMode()
+    gfx::drawText("Example3", 10, 100, 20, {220, 220 ,202 , 255})
 }
 
 
