@@ -1,0 +1,94 @@
+import (
+    "gfx.um"
+    "std.um"
+ )
+
+type SdfShapeType = enum {
+    SDF_CIRCLE = 0;
+    SDF_ROUNDED_RECTANGLE = 1;
+}
+
+type SdfInstance = struct {
+     center: gfx::Vector2
+     extent: gfx::Vector2
+     params: gfx::Vector4
+     color: gfx::Vector4
+     intensity: real32
+     shapeType: real32
+     rotation: real32
+     stroke: real32
+}
+
+const SDF_MAX_INSTANCES = 4096
+
+type SdfCommandBuffer = struct {
+    instances: [SDF_MAX_INSTANCES]SdfInstance;
+    count: int;
+} ;
+
+var sdfBuffer: SdfCommandBuffer = SdfCommandBuffer{}
+
+fn beginSdfMode*();
+fn _endSdfMode(buffer: ^SdfCommandBuffer)
+fn endSdfMode*() {
+    _endSdfMode(&sdfBuffer)
+}
+fn flushSdf*(sdfBuffer: ^SdfCommandBuffer)
+
+
+fn (buffer: ^SdfCommandBuffer)pushSdf(): ^SdfInstance{
+    if buffer.count > SDF_MAX_INSTANCES {
+        flushSdf(&sdfBuffer)
+    }
+    inst := &sdfBuffer.instances[sdfBuffer.count]
+    sdfBuffer.count += 1
+    return inst
+}
+
+fn drawCircle*(center: gfx::Vector2, radius: real32, color: gfx::Color, intensity: real32 = 1.0) {
+    inst := sdfBuffer.pushSdf()
+    inst.center = center
+    inst.extent = {radius, radius}
+    inst.params.x = radius
+    inst.color = gfx::colorToVec4(color)
+    inst.intensity = intensity
+    inst.shapeType = real32(int(SdfShapeType.SDF_CIRCLE))
+}
+
+fn drawRoundedRectangleEx*(rect: gfx::Rectangle, radius: real32, rotationDeg: real32, stroke: real32, color: gfx::Color, intensity: real32 = 1.0){
+    maxRadius := rect.w < rect.h ? rect.w * 0.5 : rect.h * 0.5
+    inst := sdfBuffer.pushSdf()
+    inst.center = {rect.x + rect.w * 0.5, rect.y + rect.h * 0.5}
+    inst.extent = {rect.w * 0.5, rect.h * 0.5}
+    inst.params.x = radius < maxRadius ? radius : maxRadius
+    inst.color = gfx::colorToVec4(color)
+    inst.intensity = intensity
+    inst.shapeType = real32(int(SdfShapeType.SDF_ROUNDED_RECTANGLE))
+    inst.rotation = rotationDeg / 180 * std::pi
+    inst.stroke = stroke
+}
+
+fn drawRoundedRectangle*(rect: gfx::Rectangle, radius: real32, color: gfx::Color, intensity: real32 = 1.0){
+    drawRoundedRectangleEx(rect, radius, 0, 0, color, intensity)
+}
+
+fn drawRectangle*(rect: gfx::Rectangle, color: gfx::Color, intensity: real32 = 1.0){
+    drawRoundedRectangle(rect, 0, color, intensity)
+}
+
+fn drawLine*(a: gfx::Vector2, b: gfx::Vector2, thickness: real32, color: gfx::Color, intensity: real32 = 1.0){
+    dx := b.x - a.x
+    dy := b.y - a.y
+    len := sqrt(dx * dx + dy * dy)
+    r := thickness * 0.5
+
+    inst := sdfBuffer.pushSdf()
+    inst.center = {(a.x + b.x) * 0.5, (a.y + b.y) * 0.5}
+    inst.extent = {len * 0.5 + r, r}
+    inst.params.x = r
+    inst.color = gfx::colorToVec4(color)
+    inst.intensity = intensity
+    inst.shapeType = real32(int(SdfShapeType.SDF_ROUNDED_RECTANGLE))
+    inst.rotation = atan2(dy, dx)
+    inst.stroke = 0
+}

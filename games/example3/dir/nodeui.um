@@ -1,0 +1,15 @@
+import (
+    "sdf.um"
+)
+    
+type Node* = struct {
+    x: real32
+    y: real32
+    w: real32
+    h: real32
+}
+
+fn (node: ^Node) draw*(){
+    sdf::drawRoundedRectangleEx({node.x, node.y, node.w, node.h}, 20, 0, 0, {120, 120, 180, 255})
+    sdf::drawRoundedRectangleEx({node.x, node.y, node.w, node.h}, 20, 0, 10, {70, 70, 130, 255})
+}

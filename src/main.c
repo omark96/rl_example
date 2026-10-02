@@ -90,6 +90,8 @@ int main() {
         }
     }
 
+    initSdf(screenWidth, screenHeight);
+
 #ifdef PLATFORM_WEB
     emscripten_set_main_loop(UpdateDrawFrame, 0, 1);
 #else  // PLATFORM_WEB
