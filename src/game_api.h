@@ -127,3 +127,5 @@ Handle handleFromUmka(Umka *umka) {
     }
     return NULL_HANDLE;
 }
+
+bool isValidAssetName(const char *name);

@@ -6,6 +6,7 @@ import (
 type SdfShapeType = enum {
     SDF_CIRCLE = 0;
     SDF_ROUNDED_RECTANGLE = 1;
+    SDF_TEXT = 2;
 }
 
 type SdfInstance = struct {
@@ -17,6 +18,10 @@ type SdfInstance = struct {
      shapeType: real32
      rotation: real32
      stroke: real32
+}
+
+type SdfFont = struct {
+    _: int
 }
 
 const SDF_MAX_INSTANCES = 4096
@@ -34,6 +39,7 @@ fn endSdfMode*() {
     _endSdfMode(&sdfBuffer)
 }
 fn flushSdf*(sdfBuffer: ^SdfCommandBuffer)
+fn loadFont*(fontName: str): SdfFont
 
 
 fn (buffer: ^SdfCommandBuffer)pushSdf(): ^SdfInstance{
