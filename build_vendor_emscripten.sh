@@ -13,6 +13,14 @@ mkdir -p "$ROOT/build/vendor/web"
 )
 
 (
+    cd "$ROOT/vendor/yyjson" || exit 1
+    rm -f *.o
+    emcc -c -O3 yyjson.c
+    emar rcs "$ROOT/build/vendor/web/yyjson.a" *.o
+    rm -f *.o
+)
+
+(
     cd "$ROOT/vendor/raylib-6.0/src" || exit 1
     rm -f *.o
     emcc -c rcore.c rshapes.c rtextures.c rtext.c rmodels.c raudio.c -Os -Wall -DPLATFORM_WEB -DGRAPHICS_API_OPENGL_ES3

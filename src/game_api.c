@@ -443,3 +443,17 @@ void checkForGameUpdates(GamePool *games) {
 
     UnloadDirectoryFiles(gameDirs);
 }
+
+bool isValidAssetName(const char *name) {
+    if (name == NULL || name[0] == '\0') {
+        return false;
+    }
+    for (const char *c = name; *c != '\0'; c++) {
+        bool ok = (*c >= 'a' && *c <= 'z') || (*c >= 'A' && *c <= 'Z') || (*c >= '0' && *c <= '9')
+                  || *c == '_' || *c == '-' || *c == '/' || *c == '\\';
+        if (!ok) {
+            return false;
+        }
+    }
+    return true;
+}

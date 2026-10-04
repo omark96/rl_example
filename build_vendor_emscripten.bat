@@ -13,6 +13,13 @@ emar rcs "%ROOT%build\vendor\web\libumka.a" *.o
 del *.o 2>nul
 popd
 
+pushd "%ROOT%vendor\yyjson"
+del *.o 2>nul
+emcc -c -O3 yyjson.c
+emar rcs "%ROOT%build\vendor\web\libyyjson.a" *.o
+del *.o 2>nul
+popd
+
 pushd "%ROOT%vendor\raylib-6.0\src\"
 del *.o 2>nul
 emcc -c rcore.c rshapes.c rtextures.c rtext.c rmodels.c raudio.c -Os -Wall -DPLATFORM_WEB -DGRAPHICS_API_OPENGL_ES3
