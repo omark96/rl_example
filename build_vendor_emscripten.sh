@@ -16,7 +16,7 @@ mkdir -p "$ROOT/build/vendor/web"
     cd "$ROOT/vendor/yyjson" || exit 1
     rm -f *.o
     emcc -c -O3 yyjson.c
-    emar rcs "$ROOT/build/vendor/web/yyjson.a" *.o
+    emar rcs "$ROOT/build/vendor/web/libyyjson.a" *.o
     rm -f *.o
 )
 
