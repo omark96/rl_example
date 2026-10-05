@@ -19,6 +19,7 @@ typedef struct Handle {
 #define MAX_TEXTURES 256
 #define MAX_RENDER_TEXTURES 8
 #define MAX_MODELS 256
+#define MAX_SDF_FONTS 256
 
 #define T Texture
 #define F_PREFIX texture
@@ -37,6 +38,8 @@ typedef struct Handle {
 #define POOL_IMPLEMENTATION
 #define POOL_MAX_CAP MAX_MODELS
 #include "pool.h"
+
+typedef struct SdfState SdfState;
 
 typedef enum GameState {
     STATE_DISABLED,
@@ -86,6 +89,7 @@ typedef struct GlobalContext {
     TexturePool textures;
     RenderTexture2DPool renderTextures;
     ModelPool models;
+    SdfState *sdf;
 
     InputContext inputs;
 

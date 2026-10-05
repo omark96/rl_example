@@ -61,6 +61,7 @@ int main() {
     renderTexture2DPoolInit(&g_ctx.renderTextures, defaultRenderTexure);
     Game defaultGame = {0};
     gamePoolInit(&g_ctx.games, defaultGame);
+    initSdf(screenWidth, screenHeight);
 
     for (int i = 0; i < gameCount; i++) {
         const char *gameName = GetFileName(gamePaths.paths[i]);
@@ -89,8 +90,6 @@ int main() {
             umkaCall(game->umka, &game->init);
         }
     }
-
-    initSdf(screenWidth, screenHeight);
 
 #ifdef PLATFORM_WEB
     emscripten_set_main_loop(UpdateDrawFrame, 0, 1);
