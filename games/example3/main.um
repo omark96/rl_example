@@ -54,7 +54,6 @@ fn input() {
         mouseX := real32(input::getMouseX())
         mouseY := real32(input::getMouseY())
         world := gfx::getScreenToWorld2D({mouseX, mouseY}, state.camera)
-        printf("%v\n", world)
         state.camera.offset = {mouseX, mouseY}
         state.camera.target = world
         state.camera.zoom *= wheelDelta > 0 ? 1.1 : 1.0/1.1
