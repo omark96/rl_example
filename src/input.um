@@ -1,3 +1,7 @@
+import (
+    "gfx.um"
+)
+
 type MouseButton* = enum {
     LEFT    = 0;
     RIGHT   = 1;
@@ -33,6 +37,7 @@ type KeyboardKey* = enum {
 }
 
 fn isMouseButtonPressed*(button: MouseButton): bool
+fn isMouseButtonDown*(button: MouseButton): bool
 fn getMouseX*(): int32
 fn getMouseY*(): int32
 
@@ -40,3 +45,6 @@ fn disableCursor*()
 fn enableCursor*()
 
 fn isKeyPressed*(key: KeyboardKey): bool
+
+fn getMouseWheelMove*(): real
+fn getMouseDelta*(): gfx::Vector2
