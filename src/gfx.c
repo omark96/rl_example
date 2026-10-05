@@ -35,6 +35,25 @@ void gfxBeginMode3D(UmkaStackSlot *params, UmkaStackSlot *result) {
 
 void gfxEndMode3D(UmkaStackSlot *params, UmkaStackSlot *result) { EndMode3D(); }
 
+void gfxBeginMode2D(UmkaStackSlot *params, UmkaStackSlot *result) {
+    Camera2D *camera = (Camera2D *)umkaGetParam(params, 0);
+    BeginMode2D(*camera);
+}
+
+void gfxEndMode2D(UmkaStackSlot *params, UmkaStackSlot *result) { EndMode2D(); }
+
+void gfxGetWorldToScreen2D(UmkaStackSlot *params, UmkaStackSlot *result) {
+    Vector2 *pos = (Vector2 *)umkaGetParam(params, 0);
+    Camera2D *camera = (Camera2D *)umkaGetParam(params, 1);
+    *(Vector2 *)umkaGetResult(params, result)->ptrVal = GetWorldToScreen2D(*pos, *camera);
+}
+
+void gfxGetScreenToWorld2D(UmkaStackSlot *params, UmkaStackSlot *result) {
+    Vector2 *pos = (Vector2 *)umkaGetParam(params, 0);
+    Camera2D *camera = (Camera2D *)umkaGetParam(params, 1);
+    *(Vector2 *)umkaGetResult(params, result)->ptrVal = GetScreenToWorld2D(*pos, *camera);
+}
+
 void gfxUpdateCamera(UmkaStackSlot *params, UmkaStackSlot *result) {
     Camera3D *camera = umkaGetParam(params, 0)->ptrVal;
     CameraMode cameraMode = umkaGetParam(params, 1)->intVal;
@@ -185,6 +204,10 @@ void gfxAddUmkaModule(Umka *umka) {
     umkaAddFunc(umka, "getGameScreenTexture", &gfxGetGameScreenTexture);
     umkaAddFunc(umka, "endMode3D", &gfxEndMode3D);
     umkaAddFunc(umka, "beginMode3D", &gfxBeginMode3D);
+    umkaAddFunc(umka, "endMode2D", &gfxEndMode2D);
+    umkaAddFunc(umka, "beginMode2D", &gfxBeginMode2D);
+    umkaAddFunc(umka, "getScreenToWorld2D", &gfxGetScreenToWorld2D);
+    umkaAddFunc(umka, "getWorldToScreen2D", &gfxGetWorldToScreen2D);
     umkaAddFunc(umka, "updateCamera", &gfxUpdateCamera);
     umkaAddFunc(umka, "clearBackground", &gfxClearBackground);
 

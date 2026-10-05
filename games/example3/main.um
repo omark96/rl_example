@@ -8,6 +8,7 @@ import (
 
 type State = struct {
     node: nui::Node
+    camera: gfx::Camera2D
 }
 
 var state: State = {
@@ -17,12 +18,25 @@ fn hotReload(): ^State{
     return &state
 }
 
+fn clamp(val, min, max: real32): real32{
+    val = val < min ? min : val
+    val = val > max ? max : val
+    return val
+}
+
 fn init() {
     state.node = {200, 200, 400, 300}
     sdf::loadFont("FiraSans")
+    state.camera = gfx::Camera2D{
+        offset: {0, 0}, 
+        target: {0, 0}, 
+        rotation: 0, 
+        zoom: 1
+    }
 }
 
 fn update() {
+    
 }
 
 fn input() {
@@ -31,18 +45,40 @@ fn input() {
         parentHandle := core::getParentGame()
         core::setActiveGame(parentHandle)
     }
+    
+
+    
+    wheelDelta := input::getMouseWheelMove()
+
+    if wheelDelta != 0 {
+        mouseX := real32(input::getMouseX())
+        mouseY := real32(input::getMouseY())
+        world := gfx::getScreenToWorld2D({mouseX, mouseY}, state.camera)
+        printf("%v\n", world)
+        state.camera.offset = {mouseX, mouseY}
+        state.camera.target = world
+        state.camera.zoom *= wheelDelta > 0 ? 1.1 : 1.0/1.1
+        state.camera.zoom = clamp(state.camera.zoom, 0.1, 10)
+    }
+
+    if input::isMouseButtonDown(.LEFT) {
+        mouseDelta := input::getMouseDelta()
+        state.camera.target.x -= mouseDelta.x / state.camera.zoom
+        state.camera.target.y -= mouseDelta.y / state.camera.zoom
+    }
 }
 
 fn draw() {
     gfx::clearBackground({20, 20, 20, 255})
     sdf::beginSdfMode()
-
+    gfx::beginMode2D(state.camera)
     state.node.draw()
     sdf::drawLine({800, 100}, {1000, 200}, 20, {200, 50, 50, 255})
     sdf::drawCircle({1000, 400}, 200, {50, 150, 50, 255})
     sdf::drawText("Hello world!", 200, 200)
     sdf::endSdfMode()
-    gfx::drawText("Example3", 10, 100, 20, {220, 220 ,202 , 255})
+    gfx::endMode2D()
+    gfx::drawText("Example3", 10, 100, 20, {220, 220, 220, 255})
 }
 
 

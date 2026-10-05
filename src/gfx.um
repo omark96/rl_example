@@ -38,6 +38,13 @@ type Camera* = struct {
     projection: int32
 }
 
+type Camera2D* = struct {
+    offset: Vector2
+    target: Vector2
+    rotation: real32
+    zoom: real32
+}
+
 type CameraMode* = enum {
     CUSTOM = 0;              // Camera custom, controlled by user (UpdateCamera() does nothing)
     FREE;                    // Camera free mode
@@ -58,6 +65,10 @@ fn drawModel*(model: Model, position: Vector3, scale: real32, color: Color)
 fn replaceTextureOnModel*(model: Model, materialIndex: int32, texture: Texture)
 fn beginMode3D*(camera: Camera)
 fn endMode3D*()
+fn beginMode2D*(camera: Camera2D)
+fn endMode2D*()
+fn getScreenToWorld2D*(pos: Vector2, camera: Camera2D): Vector2
+fn getWorldToScreen2D*(pos: Vector2, camera: Camera2D): Vector2
 fn drawTexQuad*(texture: Texture, pos, right, up: Vector3, flipY: bool, tint: Color)
 fn updateCamera*(camera: ^Camera, mode: CameraMode)
 fn getGameScreen*(game: core::Game): RenderTexture
