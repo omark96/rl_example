@@ -40,6 +40,7 @@ fn draw() {
     state.node.draw()
     sdf::drawLine({800, 100}, {1000, 200}, 20, {200, 50, 50, 255})
     sdf::drawCircle({1000, 400}, 200, {50, 150, 50, 255})
+    sdf::drawText("Hello world!", 200, 200)
     sdf::endSdfMode()
     gfx::drawText("Example3", 10, 100, 20, {220, 220 ,202 , 255})
 }

@@ -3,13 +3,13 @@ import (
     "std.um"
  )
 
-type SdfShapeType = enum {
+type ShapeType = enum {
     SDF_CIRCLE = 0;
     SDF_ROUNDED_RECTANGLE = 1;
     SDF_TEXT = 2;
 }
 
-type SdfInstance = struct {
+type Instance = struct {
      center: gfx::Vector2
      extent: gfx::Vector2
      params: gfx::Vector4
@@ -20,56 +20,125 @@ type SdfInstance = struct {
      stroke: real32
 }
 
-type SdfFont = struct {
+type GlyphData = struct {
+    codePoint: uint32
+    planeCenter: gfx::Vector2
+    planeExtent: gfx::Vector2
+    uvCenter: gfx::Vector2
+    uvExtent: gfx::Vector2
+    advance: real32
+}
+
+type FontHandle = struct {
     _: int
+}
+
+type FontMetrics = struct {
+    lineHeight: real32;
+    ascender: real32;
+    descender: real32;
+    distanceRange: real32;
+    atlasSize: gfx::Vector2;
+}
+
+type Font = struct {
+    fontHandle: FontHandle
+    metrics: FontMetrics
+    glyphs: map[uint32]GlyphData
 }
 
 const SDF_MAX_INSTANCES = 4096
 
 type SdfCommandBuffer = struct {
-    instances: [SDF_MAX_INSTANCES]SdfInstance;
+    instances: [SDF_MAX_INSTANCES]Instance;
     count: int;
-} ;
-
-var sdfBuffer: SdfCommandBuffer = SdfCommandBuffer{}
-
-fn beginSdfMode*();
-fn _endSdfMode(buffer: ^SdfCommandBuffer)
-fn endSdfMode*() {
-    _endSdfMode(&sdfBuffer)
 }
-fn flushSdf*(sdfBuffer: ^SdfCommandBuffer)
-fn loadFont*(fontName: str): SdfFont
 
+type SdfState = struct {
+    buffer: SdfCommandBuffer
+    font: ^Font
+    textPending: bool
+    defaultFont: Font
+    init: bool
+}
 
-fn (buffer: ^SdfCommandBuffer)pushSdf(): ^SdfInstance{
-    if buffer.count > SDF_MAX_INSTANCES {
-        flushSdf(&sdfBuffer)
+var state: SdfState = {}
+
+fn sdfFontGlyphs(fontHandle: FontHandle): []GlyphData
+fn sdfFontMetrics(fontHandle: FontHandle): FontMetrics
+fn sdfGetFont(fontHandle: FontHandle): Font {
+    font := Font{}
+    font.fontHandle = fontHandle
+    font.metrics = sdfFontMetrics(fontHandle)
+    for _, glyph in sdfFontGlyphs(fontHandle){
+        font.glyphs[glyph.codePoint] = glyph
     }
-    inst := &sdfBuffer.instances[sdfBuffer.count]
-    sdfBuffer.count += 1
+    return font
+}
+
+fn sdfDefaultFontHandle(): FontHandle
+
+fn _loadFont(fontName: str): FontHandle
+fn loadFont*(fontName: str): Font {
+    fontHandle := _loadFont(fontName)
+    return sdfGetFont(fontHandle)
+}
+
+fn _beginSdfMode()
+fn beginSdfMode*(font: ^Font = null) {
+    _beginSdfMode()
+    if font != null {
+        state.font = font
+    } else {
+        if state.init {
+            state.font = &state.defaultFont
+        } else {
+            state.defaultFont = sdfGetFont(sdfDefaultFontHandle())
+            state.font = &state.defaultFont
+            state.init = true
+        }
+    }
+}
+
+fn _endSdfMode(buffer: ^SdfCommandBuffer, fontHandle: FontHandle)
+fn endSdfMode*() {
+    font := state.font^
+    _endSdfMode(&state.buffer, font.fontHandle)
+}
+
+fn _flush(sdfBuffer: ^SdfCommandBuffer, fontHandle: FontHandle)
+fn flushSdf*(sdfBuffer: ^SdfCommandBuffer) {
+    _flush(&state.buffer, state.font.fontHandle)
+}
+
+fn (buffer: ^SdfCommandBuffer)pushSdf(): ^Instance{
+    if buffer.count > SDF_MAX_INSTANCES {
+        flushSdf(&state.buffer)
+    }
+    inst := &state.buffer.instances[state.buffer.count]
+    state.buffer.count += 1
     return inst
 }
 
 fn drawCircle*(center: gfx::Vector2, radius: real32, color: gfx::Color, intensity: real32 = 1.0) {
-    inst := sdfBuffer.pushSdf()
+    inst := state.buffer.pushSdf()
     inst.center = center
     inst.extent = {radius, radius}
     inst.params.x = radius
     inst.color = gfx::colorToVec4(color)
     inst.intensity = intensity
-    inst.shapeType = real32(int(SdfShapeType.SDF_CIRCLE))
+    inst.shapeType = real32(int(ShapeType.SDF_CIRCLE))
 }
 
 fn drawRoundedRectangleEx*(rect: gfx::Rectangle, radius: real32, rotationDeg: real32, stroke: real32, color: gfx::Color, intensity: real32 = 1.0){
     maxRadius := rect.w < rect.h ? rect.w * 0.5 : rect.h * 0.5
-    inst := sdfBuffer.pushSdf()
+    inst := state.buffer.pushSdf()
     inst.center = {rect.x + rect.w * 0.5, rect.y + rect.h * 0.5}
     inst.extent = {rect.w * 0.5, rect.h * 0.5}
     inst.params.x = radius < maxRadius ? radius : maxRadius
     inst.color = gfx::colorToVec4(color)
     inst.intensity = intensity
-    inst.shapeType = real32(int(SdfShapeType.SDF_ROUNDED_RECTANGLE))
+    inst.shapeType = real32(int(ShapeType.SDF_ROUNDED_RECTANGLE))
     inst.rotation = rotationDeg / 180 * std::pi
     inst.stroke = stroke
 }
@@ -88,13 +157,43 @@ fn drawLine*(a: gfx::Vector2, b: gfx::Vector2, thickness: real32, color: gfx::Co
     len := sqrt(dx * dx + dy * dy)
     r := thickness * 0.5
 
-    inst := sdfBuffer.pushSdf()
+    inst := state.buffer.pushSdf()
     inst.center = {(a.x + b.x) * 0.5, (a.y + b.y) * 0.5}
     inst.extent = {len * 0.5 + r, r}
     inst.params.x = r
     inst.color = gfx::colorToVec4(color)
     inst.intensity = intensity
-    inst.shapeType = real32(int(SdfShapeType.SDF_ROUNDED_RECTANGLE))
+    inst.shapeType = real32(int(ShapeType.SDF_ROUNDED_RECTANGLE))
     inst.rotation = atan2(dy, dx)
     inst.stroke = 0
+}
+
+fn setFont*(font: ^Font) {
+    if state.font.fontHandle == font.fontHandle {
+        return
+    }
+    flushSdf(&state.buffer)
+    state.font = font;
+}
+
+fn drawText*(text: str, x: real32, y: real32){
+    penX := x
+    fontSize := 32
+    for _, c in text {
+        glyph := state.font.glyphs[uint32(c)]
+        
+        inst := state.buffer.pushSdf()
+        inst.shapeType = real32(int(ShapeType.SDF_TEXT))
+        inst.intensity = 1
+        inst.center.x = penX + glyph.planeCenter.x * fontSize
+        inst.center.y = y + glyph.planeCenter.y * fontSize
+        inst.extent.x = glyph.planeExtent.x * fontSize
+        inst.extent.y = glyph.planeExtent.y * fontSize
+        inst.params.x = glyph.uvCenter.x
+        inst.params.y = glyph.uvCenter.y
+        inst.params.z = glyph.uvExtent.x
+        inst.params.w = glyph.uvExtent.y
+        inst.color = {0.9, 0.9, 0.9, 1}
+        penX += glyph.advance * fontSize
+    }   
 }
