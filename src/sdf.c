@@ -195,8 +195,10 @@ SdfFont loadSdfFont(const char *fontName) {
         printf("Too long font name");
         return font;
     }
+    Texture2D fontTexture = LoadTexture(path);
+    SetTextureFilter(fontTexture, TEXTURE_FILTER_BILINEAR);
+    font.texture = texturePoolAdd(&g_ctx.textures, fontTexture);
 
-    font.texture = texturePoolAdd(&g_ctx.textures, LoadTexture(path));
     yyjson_doc_free(doc);
     return font;
 }
