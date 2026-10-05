@@ -193,37 +193,11 @@ void freeGame(Game *game) {
 }
 
 void transfer(Umka *dstUmka, void *dst, const UmkaType *dstType, Umka *srcUmka, void *src,
-              const UmkaType *srcType);
-
-static MapNode *transferMapNode(Umka *dstUmka, const UmkaType *dstKeyType,
-                                const UmkaType *dstItemType, Umka *srcUmka, MapNode *srcNode,
-                                const UmkaType *srcKeyType, const UmkaType *srcItemType) {
-    if (!srcNode) {
-        return NULL;
-    }
-
-    MapNode *dstNode = (MapNode *)umkaAllocData(dstUmka, sizeof(MapNode), NULL);
-    dstNode->len = srcNode->len;
-    dstNode->priority = srcNode->priority;
-
-    transfer(dstUmka, &dstNode->key, dstKeyType, srcUmka, &srcNode->key, srcKeyType);
-
-    transfer(dstUmka, &dstNode->data, dstItemType, srcUmka, &srcNode->data, srcItemType);
-
-    dstNode->left = transferMapNode(dstUmka, dstKeyType, dstItemType, srcUmka, srcNode->left,
-                                    srcKeyType, srcItemType);
-    dstNode->right = transferMapNode(dstUmka, dstKeyType, dstItemType, srcUmka, srcNode->right,
-                                     srcKeyType, srcItemType);
-
-    return dstNode;
-}
-
-void transfer(Umka *dstUmka, void *dst, const UmkaType *dstType, Umka *srcUmka, void *src,
               const UmkaType *srcType) {
-    if (srcType->kind != dstType->kind)
+    if (umkaGetTypeKind(srcType) != umkaGetTypeKind(dstType))
         return;
 
-    switch (srcType->kind) {
+    switch (umkaGetTypeKind(srcType)) {
     case TYPE_BOOL:
     case TYPE_CHAR:
     case TYPE_INT8:
@@ -236,23 +210,25 @@ void transfer(Umka *dstUmka, void *dst, const UmkaType *dstType, Umka *srcUmka, 
     case TYPE_UINT16:
     case TYPE_UINT32:
     case TYPE_UINT: {
-        memcpy(dst, src, srcType->size);
+        memcpy(dst, src, umkaGetTypeSize(srcType));
         break;
     }
     case TYPE_STRUCT: {
-        for (int i = 0; i < srcType->numItems; i++) {
-            const Field *srcField = srcType->field[i];
-            const Field *dstField = NULL;
-            for (int j = 0; j < dstType->numItems; j++) {
-                if (strcmp(srcField->name, dstType->field[j]->name) == 0) {
-                    dstField = dstType->field[j];
-                    break;
-                }
-            }
-            if (dstField) {
-                transfer(dstUmka, dst + dstField->offset, dstField->type, srcUmka,
-                         src + srcField->offset, srcField->type);
-            }
+        for (int i = 0;; i++) {
+            const char *fieldName = umkaGetFieldName(srcType, i);
+            if (!fieldName)
+                break;
+
+            const UmkaType *dstFieldType = umkaGetFieldType(dstType, fieldName);
+            if (!dstFieldType)
+                continue;
+
+            const UmkaType *srcFieldType = umkaGetFieldType(srcType, fieldName);
+            const int dstOffset = umkaGetFieldOffset(dstType, fieldName);
+            const int srcOffset = umkaGetFieldOffset(srcType, fieldName);
+
+            transfer(dstUmka, dst + dstOffset, dstFieldType, srcUmka, src + srcOffset,
+                     srcFieldType);
         }
         break;
     }
@@ -260,11 +236,12 @@ void transfer(Umka *dstUmka, void *dst, const UmkaType *dstType, Umka *srcUmka, 
         const UmkaType *srcBase = umkaGetBaseType(srcType);
         const UmkaType *dstBase = umkaGetBaseType(dstType);
 
-        const int count
-            = srcType->numItems < dstType->numItems ? srcType->numItems : dstType->numItems;
+        const int srcLen = umkaGetTypeLen(srcType);
+        const int dstLen = umkaGetTypeLen(dstType);
+        const int count = srcLen < dstLen ? srcLen : dstLen;
 
-        const int64_t srcStride = srcBase->size;
-        const int64_t dstStride = dstBase->size;
+        const int64_t srcStride = umkaGetTypeSize(srcBase);
+        const int64_t dstStride = umkaGetTypeSize(dstBase);
 
         for (int i = 0; i < count; i++) {
             transfer(dstUmka, dst + i * dstStride, dstBase, srcUmka, src + i * srcStride, srcBase);
@@ -316,14 +293,16 @@ void transfer(Umka *dstUmka, void *dst, const UmkaType *dstType, Umka *srcUmka, 
         const UmkaType *srcBase = umkaGetBaseType(srcType);
         const UmkaType *dstBase = umkaGetBaseType(dstType);
 
-        if (srcBase->kind != dstBase->kind || dstBase->kind == TYPE_VOID) {
+        if (umkaGetTypeKind(srcBase) != umkaGetTypeKind(dstBase)
+            || umkaGetTypeKind(dstBase) == TYPE_VOID) {
             *dstSlot = NULL;
             break;
         }
 
-        void *newObj = (dstBase->kind == TYPE_STRUCT || dstBase->kind == TYPE_ARRAY)
+        const UmkaTypeKind dstBaseKind = umkaGetTypeKind(dstBase);
+        void *newObj = (dstBaseKind == TYPE_STRUCT || dstBaseKind == TYPE_ARRAY)
                            ? umkaMakeStruct(dstUmka, dstBase)
-                           : umkaAllocData(dstUmka, dstBase->size, NULL);
+                           : umkaAllocData(dstUmka, umkaGetTypeSize(dstBase), NULL);
 
         *dstSlot = newObj;
 
@@ -334,18 +313,13 @@ void transfer(Umka *dstUmka, void *dst, const UmkaType *dstType, Umka *srcUmka, 
         UmkaMap *srcMap = (UmkaMap *)src;
         UmkaMap *dstMap = (UmkaMap *)dst;
 
-        const UmkaType *srcKeyType = srcType->base->field[2]->type;
-        const UmkaType *srcItemType = srcType->base->field[3]->type;
-        const UmkaType *srcKeyBaseType = umkaGetBaseType(srcKeyType);
-        const UmkaType *srcItemBaseType = umkaGetBaseType(srcItemType);
+        const UmkaType *srcKeyType = umkaGetMapKeyType(srcType);
+        const UmkaType *srcItemType = umkaGetMapItemType(srcType);
+        const UmkaType *dstKeyType = umkaGetMapKeyType(dstType);
+        const UmkaType *dstItemType = umkaGetMapItemType(dstType);
 
-        const UmkaType *dstKeyType = dstType->base->field[2]->type;
-        const UmkaType *dstItemType = dstType->base->field[3]->type;
-        const UmkaType *dstKeyBaseType = umkaGetBaseType(dstKeyType);
-        const UmkaType *dstItemBaseType = umkaGetBaseType(dstItemType);
-
-        if (srcKeyBaseType->kind != dstKeyBaseType->kind
-            || srcItemBaseType->kind != dstItemBaseType->kind) {
+        if (umkaGetTypeKind(srcKeyType) != umkaGetTypeKind(dstKeyType)
+            || umkaGetTypeKind(srcItemType) != umkaGetTypeKind(dstItemType)) {
             break;
         }
 
@@ -353,14 +327,37 @@ void transfer(Umka *dstUmka, void *dst, const UmkaType *dstType, Umka *srcUmka, 
             dstMap->type = dstType;
         }
 
-        MapNode *srcRoot = srcMap->root;
-        MapNode *oldDstRoot = dstMap->root;
+        UmkaDynArray(void) keys = {0};
+        umkaGetMapKeys(srcUmka, srcMap, &keys);
 
-        dstMap->root = transferMapNode(dstUmka, dstKeyType, dstItemType, srcUmka, srcRoot,
-                                       srcKeyType, srcItemType);
-        if (oldDstRoot) {
-            umkaDecRef(dstUmka, oldDstRoot);
+        const int len = umkaGetDynArrayLen(&keys);
+        const int srcKeySize = umkaGetTypeSize(srcKeyType);
+        const int dstKeySize = umkaGetTypeSize(dstKeyType);
+        const UmkaTypeKind dstKeyKind = umkaGetTypeKind(dstKeyType);
+
+        void *dstKey = calloc(1, dstKeySize);
+
+        for (int i = 0; i < len; i++) {
+            void *srcKey = keys.data + i * srcKeySize;
+
+            // Re-create the key inside the destination instance, then index both maps
+            memset(dstKey, 0, dstKeySize);
+            transfer(dstUmka, dstKey, dstKeyType, srcUmka, srcKey, srcKeyType);
+
+            void *srcItem = umkaGetMapItem(srcUmka, srcMap, srcKey);
+            void *dstItem = umkaGetMapItem(dstUmka, dstMap, dstKey);
+
+            if (srcItem && dstItem) {
+                transfer(dstUmka, dstItem, dstItemType, srcUmka, srcItem, srcItemType);
+            }
+
+            // umkaGetMapItem took its own reference to the key
+            if (dstKeyKind == TYPE_STR || dstKeyKind == TYPE_PTR) {
+                umkaDecRef(dstUmka, *(void **)dstKey);
+            }
         }
+
+        free(dstKey);
         break;
     }
     default:
@@ -369,22 +366,15 @@ void transfer(Umka *dstUmka, void *dst, const UmkaType *dstType, Umka *srcUmka, 
 }
 
 void hotReload(Game *curr, Game *next) {
-    if (!next->umka) {
-        return;
-    }
-    if (!curr->umka) {
-        umkaCall(next->umka, &next->init);
-        return;
-    }
     umkaCall(curr->umka, &curr->hotReload);
     void *currState = umkaGetResult(curr->hotReload.params, curr->hotReload.result)->ptrVal;
     const UmkaType *currType
-        = umkaGetResultType(curr->hotReload.params, curr->hotReload.result)->base;
+        = umkaGetBaseType(umkaGetResultType(curr->hotReload.params, curr->hotReload.result));
 
     umkaCall(next->umka, &next->hotReload);
     void *nextState = umkaGetResult(next->hotReload.params, next->hotReload.result)->ptrVal;
     const UmkaType *nextType
-        = umkaGetResultType(next->hotReload.params, next->hotReload.result)->base;
+        = umkaGetBaseType(umkaGetResultType(next->hotReload.params, next->hotReload.result));
 
     transfer(next->umka, nextState, nextType, curr->umka, currState, currType);
 }

@@ -1,4 +1,6 @@
 #include "game_api.h"
+#include <stdio.h>
+#include <string.h>
 
 void corePrint(UmkaStackSlot *params, UmkaStackSlot *result) {
     const char *msg = (const char *)umkaGetParam(params, 0)->ptrVal;

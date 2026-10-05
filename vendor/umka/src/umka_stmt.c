@@ -41,7 +41,7 @@ void doGarbageCollection(Umka *umka)
 }
 
 
-void doGarbageCollectionDownToBlock(Umka *umka, int block)
+static void doGarbageCollectionDownToBlock(Umka *umka, int block)
 {
     // Collect garbage over all scopes down to the specified block (not inclusive)
     for (int i = umka->blocks.top; i >= 1 && umka->blocks.item[i].block != block; i--)

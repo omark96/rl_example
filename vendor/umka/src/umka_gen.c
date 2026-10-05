@@ -167,6 +167,13 @@ static bool optimizePop(CodeGen *gen)
         return true;
     }
 
+    // Optimization: PUSH_LOCAL_PTR + POP -> 0
+    if (prev && prev->opcode == OP_PUSH_LOCAL_PTR)
+    {
+        genRemoveInstr(gen);
+        return true;
+    }
+
     return false;
 }
 
@@ -1155,7 +1162,7 @@ void genGotosProlog(CodeGen *gen, Gotos *gotos, int block)
 void genGotosAddStub(CodeGen *gen, Gotos *gotos)
 {
     if (gotos->numGotos >= MAX_GOTOS)
-        gen->error->handler(gen->error->context, "To many break/continue/return statements");
+        gen->error->handler(gen->error->context, "Too many break/continue/return statements");
 
     gotos->start[gotos->numGotos++] = gen->ip;
     genNop(gen);                                            // Goto block/function end (stub)
