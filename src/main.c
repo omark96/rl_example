@@ -27,11 +27,7 @@ void UpdateDrawFrame() {
     DrawTextureRec(activeScreen->texture,
                    (Rectangle){0, 0, activeScreen->texture.width, -activeScreen->texture.height},
                    (Vector2){0, 0}, WHITE);
-    // Game *rootGame = gamePoolGet(&g_ctx.games, g_ctx.rootGame);
-    // RenderTexture2D *rootScreen = renderTexture2DPoolGet(&g_ctx.renderTextures,
-    // rootGame->screen); DrawTextureRec(rootScreen->texture,
-    //                (Rectangle){0, 0, rootScreen->texture.width, -rootScreen->texture.height},
-    //                (Vector2){0, 0}, WHITE);
+    DrawFPS(20, 20);
     EndDrawing();
 
     lastCheckedGames += GetFrameTime();
