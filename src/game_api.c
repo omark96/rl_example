@@ -124,7 +124,7 @@ void handleInput(Handle handle) {
         break;
     }
 
-    for (int i = 0; i < game->childCount; i++) {
+    for (usize i = 0; i < game->childCount; i++) {
         handleInput(game->children[i]);
     }
 }
@@ -132,7 +132,7 @@ void handleInput(Handle handle) {
 Game *getCurrentGame() { return gamePoolGet(&g_ctx.games, g_ctx.currentGame); }
 
 Handle getActiveGameHandle() {
-    for (int i = 0; i < g_ctx.games.count; i++) {
+    for (usize i = 0; i < g_ctx.games.count; i++) {
         Game game = g_ctx.games.items[i].item;
         if (game.state == STATE_ACTIVE) {
             return game.handle;
@@ -174,7 +174,7 @@ void setActiveGame(Handle handle) {
         EnableCursor();
     }
 
-    for (int i = 0; i < game->childCount; i++) {
+    for (usize i = 0; i < game->childCount; i++) {
         Handle childHandle = game->children[i];
         setGameState(childHandle, STATE_ENABLED);
     }
@@ -214,7 +214,7 @@ void transfer(Umka *dstUmka, void *dst, const UmkaType *dstType, Umka *srcUmka, 
         break;
     }
     case TYPE_STRUCT: {
-        for (int i = 0;; i++) {
+        for (usize i = 0;; i++) {
             const char *fieldName = umkaGetFieldName(srcType, i);
             if (!fieldName)
                 break;
@@ -224,8 +224,8 @@ void transfer(Umka *dstUmka, void *dst, const UmkaType *dstType, Umka *srcUmka, 
                 continue;
 
             const UmkaType *srcFieldType = umkaGetFieldType(srcType, fieldName);
-            const int dstOffset = umkaGetFieldOffset(dstType, fieldName);
-            const int srcOffset = umkaGetFieldOffset(srcType, fieldName);
+            const i32 dstOffset = umkaGetFieldOffset(dstType, fieldName);
+            const i32 srcOffset = umkaGetFieldOffset(srcType, fieldName);
 
             transfer(dstUmka, dst + dstOffset, dstFieldType, srcUmka, src + srcOffset,
                      srcFieldType);
@@ -236,14 +236,14 @@ void transfer(Umka *dstUmka, void *dst, const UmkaType *dstType, Umka *srcUmka, 
         const UmkaType *srcBase = umkaGetBaseType(srcType);
         const UmkaType *dstBase = umkaGetBaseType(dstType);
 
-        const int srcLen = umkaGetTypeLen(srcType);
-        const int dstLen = umkaGetTypeLen(dstType);
-        const int count = srcLen < dstLen ? srcLen : dstLen;
+        const i32 srcLen = umkaGetTypeLen(srcType);
+        const i32 dstLen = umkaGetTypeLen(dstType);
+        const i32 count = srcLen < dstLen ? srcLen : dstLen;
 
-        const int64_t srcStride = umkaGetTypeSize(srcBase);
-        const int64_t dstStride = umkaGetTypeSize(dstBase);
+        const i64 srcStride = umkaGetTypeSize(srcBase);
+        const i64 dstStride = umkaGetTypeSize(dstBase);
 
-        for (int i = 0; i < count; i++) {
+        for (usize i = 0; i < count; i++) {
             transfer(dstUmka, dst + i * dstStride, dstBase, srcUmka, src + i * srcStride, srcBase);
         }
         break;
@@ -254,13 +254,13 @@ void transfer(Umka *dstUmka, void *dst, const UmkaType *dstType, Umka *srcUmka, 
         const DynArray *srcArr = (const DynArray *)src;
         DynArray *dstArr = (DynArray *)dst;
 
-        const int len = umkaGetDynArrayLen(srcArr);
+        const i32 len = umkaGetDynArrayLen(srcArr);
         umkaMakeDynArray(dstUmka, dstArr, dstType, len);
 
         const UmkaType *srcBase = umkaGetBaseType(srcType);
         const UmkaType *dstBase = umkaGetBaseType(dstType);
 
-        for (int i = 0; i < len; i++) {
+        for (i32 i = 0; i < len; i++) {
             transfer(dstUmka, dstArr->data + i * dstArr->itemSize, dstBase, srcUmka,
                      srcArr->data + i * srcArr->itemSize, srcBase);
         }
@@ -330,14 +330,14 @@ void transfer(Umka *dstUmka, void *dst, const UmkaType *dstType, Umka *srcUmka, 
         UmkaDynArray(void) keys = {0};
         umkaGetMapKeys(srcUmka, srcMap, &keys);
 
-        const int len = umkaGetDynArrayLen(&keys);
-        const int srcKeySize = umkaGetTypeSize(srcKeyType);
-        const int dstKeySize = umkaGetTypeSize(dstKeyType);
+        const i32 len = umkaGetDynArrayLen(&keys);
+        const i32 srcKeySize = umkaGetTypeSize(srcKeyType);
+        const i32 dstKeySize = umkaGetTypeSize(dstKeyType);
         const UmkaTypeKind dstKeyKind = umkaGetTypeKind(dstKeyType);
 
         void *dstKey = calloc(1, dstKeySize);
 
-        for (int i = 0; i < len; i++) {
+        for (i32 i = 0; i < len; i++) {
             void *srcKey = keys.data + i * srcKeySize;
 
             // Re-create the key inside the destination instance, then index both maps
@@ -406,18 +406,18 @@ bool reloadGame(Game *curr, long modTime) {
 void checkForGameUpdates(GamePool *games) {
     FilePathList gameDirs = LoadDirectoryFilesEx("games", "DIRS*", false);
 
-    for (int i = 0; i < gameDirs.count; i++) {
+    for (usize i = 0; i < gameDirs.count; i++) {
         const char *gameDir = gameDirs.paths[i];
         const char *gameName = GetFileName(gameDir);
 
-        for (int j = 0; j < games->count; j++) {
+        for (usize j = 0; j < games->count; j++) {
             Game *game = &games->items[j].item;
             if (!game->name || strcmp(game->name, gameName) != 0) {
                 continue;
             }
             long lastModified = 0;
             FilePathList umkaFiles = LoadDirectoryFilesEx(gameDir, ".um", true);
-            for (uint32_t i = 0; i < umkaFiles.count; i++) {
+            for (usize i = 0; i < umkaFiles.count; i++) {
                 long modTime = GetFileModTime(umkaFiles.paths[i]);
                 if (modTime > lastModified) {
                     lastModified = modTime;
@@ -434,6 +434,8 @@ void checkForGameUpdates(GamePool *games) {
     UnloadDirectoryFiles(gameDirs);
 }
 
+// TODO: Broken and won't allow inserting a file extension.
+//       Need a more robust system for what folders a game can load assets from.
 bool isValidAssetName(const char *name) {
     if (name == NULL || name[0] == '\0') {
         return false;

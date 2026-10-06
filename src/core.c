@@ -29,7 +29,7 @@ void coreRegisterGame(UmkaStackSlot *params, UmkaStackSlot *result) {
     char *name = (char *)umkaGetParam(params, 0)->ptrVal;
     GamePool games = g_ctx.games;
     Handle handle = (Handle){0};
-    for (int i = 0; i < games.liveCount; i++) {
+    for (u32 i = 0; i < games.liveCount; i++) {
         Game game = games.items[i].item;
         if (game.name == NULL) {
             continue;
@@ -95,7 +95,7 @@ void coreAddUmkaModule(Umka *umka) {
     const char *umSourceFiles[] = {(const char[]){
 #embed "core.um"
         , '\0'}};
-    for (int i = 0; i < sizeof(umSourceFiles) / sizeof(umSourceFiles[0]); i++) {
+    for (usize i = 0; i < sizeof(umSourceFiles) / sizeof(umSourceFiles[0]); i++) {
         umkaAddModule(umka, umSourceNames[i], umSourceFiles[i]);
     }
 }

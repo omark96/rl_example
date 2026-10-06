@@ -16,23 +16,23 @@
 
 typedef struct SLOT_TYPE {
     T item;
-    uint32_t generation;
-    uint32_t nextFree;
+    u32 generation;
+    u32 nextFree;
 } SLOT_TYPE;
 
 typedef struct POOL_TYPE {
     SLOT_TYPE *items;
-    uint32_t count;
-    uint32_t liveCount;
-    uint32_t cap;
-    uint32_t firstFree;
+    u32 count;
+    u32 liveCount;
+    u32 cap;
+    u32 firstFree;
 } POOL_TYPE;
 
 void POOL_FN(Init)(POOL_TYPE *pool, T defaultItem);
 bool POOL_FN(Grow)(POOL_TYPE *pool);
 Handle POOL_FN(Add)(POOL_TYPE *pool, T item);
 bool POOL_FN(Remove)(POOL_TYPE *pool, Handle handle);
-bool POOL_FN(Resolve)(POOL_TYPE *pool, Handle handle, uint32_t *outSlotId);
+bool POOL_FN(Resolve)(POOL_TYPE *pool, Handle handle, u32 *outSlotId);
 T *POOL_FN(Get)(POOL_TYPE *pool, Handle handle);
 void POOL_FN(SetDefault)(POOL_TYPE *pool, T item);
 
@@ -43,7 +43,7 @@ void POOL_FN(Init)(POOL_TYPE *pool, T defaultItem) {
     pool->liveCount = 0;
     pool->cap = POOL_INIT_SIZE;
     pool->firstFree = 0;
-    for (size_t i = 0; i < POOL_INIT_SIZE; i++) {
+    for (usize i = 0; i < POOL_INIT_SIZE; i++) {
         pool->items[i].generation = 0;
         pool->items[i].item = (T){0};
         pool->items[i].nextFree = 0;
@@ -55,13 +55,13 @@ bool POOL_FN(Grow)(POOL_TYPE *pool) {
     if (pool->cap >= POOL_MAX_CAP) {
         return false;
     }
-    uint32_t oldCap = pool->cap;
+    u32 oldCap = pool->cap;
     pool->cap = oldCap ? oldCap * 2 : 4;
     pool->cap = pool->cap > POOL_MAX_CAP ? POOL_MAX_CAP : pool->cap;
 
     pool->items = realloc(pool->items, sizeof(SLOT_TYPE) * pool->cap);
 
-    for (size_t i = oldCap; i < pool->cap; i++) {
+    for (usize i = oldCap; i < pool->cap; i++) {
         pool->items[i].generation = 0;
         pool->items[i].item = (T){0};
         pool->items[i].nextFree = 0;
@@ -71,7 +71,7 @@ bool POOL_FN(Grow)(POOL_TYPE *pool) {
 }
 
 Handle POOL_FN(Add)(POOL_TYPE *pool, T item) {
-    uint32_t slotId = pool->firstFree;
+    u32 slotId = pool->firstFree;
     if (slotId != 0) {
         pool->firstFree = pool->items[slotId].nextFree;
     } else {
@@ -92,8 +92,8 @@ Handle POOL_FN(Add)(POOL_TYPE *pool, T item) {
     return (Handle){.slot = slotId, .generation = slot->generation};
 }
 
-bool POOL_FN(Resolve)(POOL_TYPE *pool, Handle handle, uint32_t *outSlotId) {
-    uint32_t slotId = handle.slot;
+bool POOL_FN(Resolve)(POOL_TYPE *pool, Handle handle, u32 *outSlotId) {
+    u32 slotId = handle.slot;
     if (slotId == 0 || slotId > pool->count) {
         return false;
     }
@@ -105,7 +105,7 @@ bool POOL_FN(Resolve)(POOL_TYPE *pool, Handle handle, uint32_t *outSlotId) {
 }
 
 bool POOL_FN(Remove)(POOL_TYPE *pool, Handle handle) {
-    uint32_t slotId;
+    u32 slotId;
     if (!POOL_FN(Resolve)(pool, handle, &slotId)) {
         return false;
     }
@@ -121,17 +121,17 @@ bool POOL_FN(Remove)(POOL_TYPE *pool, Handle handle) {
 }
 
 T *POOL_FN(Get)(POOL_TYPE *pool, Handle handle) {
-    uint32_t slotId;
+    u32 slotId;
     if (!POOL_FN(Resolve)(pool, handle, &slotId)) {
         return &pool->items[0].item;
     }
     return &pool->items[slotId].item;
 }
 
-int POOL_FN(GetAllHandles)(POOL_TYPE *pool, Handle *handles, uint32_t size) {
-    uint32_t max = size < pool->liveCount ? size : pool->liveCount;
-    uint32_t next = 0;
-    for (uint32_t i = 0; i <= pool->count; i++) {
+u32 POOL_FN(GetAllHandles)(POOL_TYPE *pool, Handle *handles, u32 size) {
+    u32 max = size < pool->liveCount ? size : pool->liveCount;
+    u32 next = 0;
+    for (u32 i = 0; i <= pool->count; i++) {
         SLOT_TYPE slot = pool->items[i];
         if (slot.generation & 1) {
             handles[next] = (Handle){.slot = i, .generation = slot.generation};

@@ -42,10 +42,10 @@ void UpdateDrawFrame() {
 }
 
 int main() {
-    int gameCount = 0;
+    i32 gameCount = 0;
 
-    const int screenWidth = 1920;
-    const int screenHeight = 1080;
+    const i32 screenWidth = 1920;
+    const i32 screenHeight = 1080;
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(screenWidth, screenHeight, "_dev raylib basic window");
     SetTargetFPS(60);
@@ -63,7 +63,7 @@ int main() {
     gamePoolInit(&g_ctx.games, defaultGame);
     initSdf(screenWidth, screenHeight);
 
-    for (int i = 0; i < gameCount; i++) {
+    for (i32 i = 0; i < gameCount; i++) {
         const char *gameName = GetFileName(gamePaths.paths[i]);
         Handle gameHandle = gamePoolAdd(&g_ctx.games, (Game){0});
         Game *game = gamePoolGet(&g_ctx.games, gameHandle);
@@ -83,7 +83,7 @@ int main() {
             game->cursorDisabled = 1;
         }
     }
-    for (int i = 0; i < gameCount; i++) {
+    for (i32 i = 0; i < gameCount; i++) {
         Game *game = gamePoolGet(&g_ctx.games, gameHandles[i]);
         g_ctx.currentGame = game->handle;
         if (game->umka != NULL) {
@@ -99,7 +99,7 @@ int main() {
     }
     CloseWindow();
 
-    for (int i = 0; i < gameCount; i++) {
+    for (i32 i = 0; i < gameCount; i++) {
         freeGame(gamePoolGet(&g_ctx.games, gameHandles[i]));
     }
 #endif // PLATFORM_WEB

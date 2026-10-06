@@ -8,8 +8,8 @@ void DrawTexQuad(Texture2D tex, Vector3 pos, Vector3 right, Vector3 up, bool fli
     Vector3 br = Vector3Subtract(Vector3Add(pos, right), up);
     Vector3 tr = Vector3Add(Vector3Add(pos, right), up);
 
-    float t0 = flipY ? 1.0f : 0.0f;
-    float t1 = flipY ? 0.0f : 1.0f;
+    f32 t0 = flipY ? 1.0f : 0.0f;
+    f32 t1 = flipY ? 0.0f : 1.0f;
 
     rlSetTexture(tex.id);
     rlBegin(RL_QUADS);
@@ -75,18 +75,18 @@ void gfxDrawTexQuad(UmkaStackSlot *params, UmkaStackSlot *result) {
 
 void gfxDrawText(UmkaStackSlot *params, UmkaStackSlot *result) {
     const char *text = (const char *)umkaGetParam(params, 0)->ptrVal;
-    int posX = umkaGetParam(params, 1)->intVal;
-    int posY = umkaGetParam(params, 2)->intVal;
-    int fontSize = umkaGetParam(params, 3)->intVal;
+    i32 posX = umkaGetParam(params, 1)->intVal;
+    i32 posY = umkaGetParam(params, 2)->intVal;
+    i32 fontSize = umkaGetParam(params, 3)->intVal;
     Color *color = (Color *)umkaGetParam(params, 4);
     DrawText(text, posX, posY, fontSize, *color);
 }
 
 void gfxDrawRectangle(UmkaStackSlot *params, UmkaStackSlot *result) {
-    int posX = umkaGetParam(params, 0)->intVal;
-    int posY = umkaGetParam(params, 1)->intVal;
-    int width = umkaGetParam(params, 2)->intVal;
-    int height = umkaGetParam(params, 3)->intVal;
+    i32 posX = umkaGetParam(params, 0)->intVal;
+    i32 posY = umkaGetParam(params, 1)->intVal;
+    i32 width = umkaGetParam(params, 2)->intVal;
+    i32 height = umkaGetParam(params, 3)->intVal;
     Color *color = (Color *)umkaGetParam(params, 4);
     DrawRectangle(posX, posY, width, height, *color);
 }
@@ -133,8 +133,8 @@ void gfxUnloadTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
 
 void gfxDrawTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
     Handle textureHandle = *(Handle *)umkaGetParam(params, 0);
-    int32_t x = umkaGetParam(params, 1)->intVal;
-    int32_t y = umkaGetParam(params, 2)->intVal;
+    i32 x = umkaGetParam(params, 1)->intVal;
+    i32 y = umkaGetParam(params, 2)->intVal;
     Color *color = (Color *)umkaGetParam(params, 3);
     Texture *texture = texturePoolGet(&g_ctx.textures, textureHandle);
     DrawTexture(*texture, x, y, *color);
@@ -143,7 +143,7 @@ void gfxDrawTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
 void gfxDrawModel(UmkaStackSlot *params, UmkaStackSlot *result) {
     Handle modelHandle = *(Handle *)umkaGetParam(params, 0);
     Vector3 position = *(Vector3 *)umkaGetParam(params, 1);
-    float scale = umkaGetParam(params, 2)->real32Val;
+    f32 scale = umkaGetParam(params, 2)->real32Val;
     Color color = *(Color *)umkaGetParam(params, 3);
     Model model = *modelPoolGet(&g_ctx.models, modelHandle);
     DrawModel(model, position, scale, color);
@@ -151,7 +151,7 @@ void gfxDrawModel(UmkaStackSlot *params, UmkaStackSlot *result) {
 
 void gfxReplaceTextureOnModel(UmkaStackSlot *params, UmkaStackSlot *result) {
     Handle modelHandle = *(Handle *)umkaGetParam(params, 0);
-    uint32_t materialIndex = umkaGetParam(params, 1)->intVal;
+    u32 materialIndex = umkaGetParam(params, 1)->intVal;
     Handle textureHandle = *(Handle *)umkaGetParam(params, 2);
 
     Model *model = modelPoolGet(&g_ctx.models, modelHandle);
@@ -167,10 +167,9 @@ void gfxGetGameScreen(UmkaStackSlot *params, UmkaStackSlot *result) {
 
 void gfxGetGameScreenTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
     Handle renderTextureHandle = *(Handle *)umkaGetParam(params, 0);
-    uint32_t textureId
-        = renderTexture2DPoolGet(&g_ctx.renderTextures, renderTextureHandle)->texture.id;
+    u32 textureId = renderTexture2DPoolGet(&g_ctx.renderTextures, renderTextureHandle)->texture.id;
     Handle textureHandle = {0};
-    for (int i = 0; i < g_ctx.textures.count; i++) {
+    for (usize i = 0; i < g_ctx.textures.count; i++) {
         TextureSlot slot = g_ctx.textures.items[i];
         Texture texture = slot.item;
         if (texture.id == textureId) {
@@ -182,8 +181,8 @@ void gfxGetGameScreenTexture(UmkaStackSlot *params, UmkaStackSlot *result) {
 }
 
 void gfxDrawGrid(UmkaStackSlot *params, UmkaStackSlot *result) {
-    int32_t slices = umkaGetParam(params, 0)->intVal;
-    float spacing = umkaGetParam(params, 1)->real32Val;
+    i32 slices = umkaGetParam(params, 0)->intVal;
+    f32 spacing = umkaGetParam(params, 1)->real32Val;
 
     DrawGrid(slices, spacing);
 }
@@ -215,7 +214,7 @@ void gfxAddUmkaModule(Umka *umka) {
     const char *umSourceFiles[] = {(const char[]){
 #embed "gfx.um"
         , '\0'}};
-    for (int i = 0; i < sizeof(umSourceFiles) / sizeof(umSourceFiles[0]); i++) {
+    for (usize i = 0; i < sizeof(umSourceFiles) / sizeof(umSourceFiles[0]); i++) {
         umkaAddModule(umka, umSourceNames[i], umSourceFiles[i]);
     }
 }

@@ -1,11 +1,29 @@
 #pragma once
 #include "raylib.h"
 #include "umka_api.h"
+#include <stdint.h>
 #include <stdlib.h>
 
+typedef int8_t i8;
+typedef int16_t i16;
+typedef int32_t i32;
+typedef int64_t i64;
+
+typedef uint8_t u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
+
+typedef float f32;
+typedef double f64;
+
+typedef ptrdiff_t isize;
+typedef size_t usize;
+typedef uintptr_t uptr;
+
 typedef struct Handle {
-    uint32_t slot;
-    uint32_t generation;
+    u32 slot;
+    u32 generation;
 } Handle;
 
 #define NULL_HANDLE (Handle){.slot = 0, .generation = 0}
@@ -55,7 +73,7 @@ typedef struct Game {
 
     Handle parent;
     Handle children[16];
-    uint8_t childCount;
+    u8 childCount;
 
     bool cursorDisabled;
 
@@ -73,10 +91,10 @@ typedef struct Game {
 #include "pool.h"
 
 typedef struct InputContext {
-    uint32_t handledKeys[512];
-    uint32_t handledMouseButtons[16];
+    u32 handledKeys[512];
+    u32 handledMouseButtons[16];
     Vector2 mousePosition;
-    float mouseWheelMove;
+    f32 mouseWheelMove;
 } InputContext;
 
 typedef struct GlobalContext {
@@ -91,7 +109,7 @@ typedef struct GlobalContext {
     Handle rootGame;
     Handle currentGame;
 
-    float lastCheckedGames;
+    f32 lastCheckedGames;
 } GlobalContext;
 
 extern GlobalContext g_ctx;
@@ -108,7 +126,7 @@ GameState getGameState(Handle handle);
 
 Game *gameFromUmka(Umka *umka) {
     GamePool games = g_ctx.games;
-    for (uint8_t i = 0; i <= games.count; i++) {
+    for (u32 i = 0; i <= games.count; i++) {
         if (games.items[i].item.umka == umka) {
             return &games.items[i].item;
         }
@@ -118,7 +136,7 @@ Game *gameFromUmka(Umka *umka) {
 
 Handle handleFromUmka(Umka *umka) {
     GamePool games = g_ctx.games;
-    for (uint8_t i = 0; i <= games.count; i++) {
+    for (u32 i = 0; i <= games.count; i++) {
         GameSlot slot = games.items[i];
         if (slot.item.umka == umka) {
             return (Handle){.slot = i, .generation = slot.generation};

@@ -5,26 +5,26 @@
 #include "yyjson.h"
 
 typedef struct {
-    uint32_t codePoint;
+    u32 codePoint;
     Vector2 planeCenter;
     Vector2 planeExtent;
     Vector2 uvCenter;
     Vector2 uvExtent;
-    float advance;
+    f32 advance;
 } GlyphData;
 
 typedef struct {
-    float lineHeight;
-    float ascender;
-    float descender;
-    float distanceRange;
+    f32 lineHeight;
+    f32 ascender;
+    f32 descender;
+    f32 distanceRange;
     Vector2 atlasSize;
 } FontMetrics;
 
 typedef struct {
     FontMetrics metrics;
     GlyphData *glyphData;
-    uint32_t glyphCount;
+    u32 glyphCount;
     Handle texture;
 } SdfFont;
 
@@ -33,29 +33,29 @@ typedef struct {
     Vector2 extent;
     Vector4 params;
     Vector4 color;
-    float intensity;
-    float type; // SdfShapeType
-    float rotation;
-    float stroke;
+    f32 intensity;
+    f32 type; // SdfShapeType
+    f32 rotation;
+    f32 stroke;
 } SdfInstance;
 
 #define SDF_MAX_INSTANCES 4096
 
 typedef struct {
     SdfInstance instances[SDF_MAX_INSTANCES];
-    int count;
+    i32 count;
 } SdfCommandBuffer;
 
 typedef struct {
     Shader shader;
-    int locMvp;
-    int locGlowPad;
-    int locAtlas;
-    int locPxRange;
-    uint32_t vao;
-    uint32_t quadVbo;
-    uint32_t instanceVbo;
-    float glowPad;
+    i32 locMvp;
+    i32 locGlowPad;
+    i32 locAtlas;
+    i32 locPxRange;
+    u32 vao;
+    u32 quadVbo;
+    u32 instanceVbo;
+    f32 glowPad;
     SdfCommandBuffer commandBuffer;
     Handle font;
 } SdfRenderer;
@@ -81,11 +81,11 @@ Shader loadSdfShader(const char *vsPath, const char *fsPath) {
     char *vsBody = LoadFileText(vsPath);
     char *fsBody = LoadFileText(fsPath);
 
-    uint32_t vsLen = strlen(GLSL_VERSION) + strlen(vsBody) + 1;
+    u32 vsLen = strlen(GLSL_VERSION) + strlen(vsBody) + 1;
     char *vs = malloc(vsLen);
     snprintf(vs, vsLen, "%s%s", GLSL_VERSION, vsBody);
 
-    uint32_t fsLen = strlen(GLSL_VERSION) + strlen(fsBody) + 1;
+    u32 fsLen = strlen(GLSL_VERSION) + strlen(fsBody) + 1;
     char *fs = malloc(fsLen);
     snprintf(fs, fsLen, "%s%s", GLSL_VERSION, fsBody);
 
@@ -100,7 +100,7 @@ Shader loadSdfShader(const char *vsPath, const char *fsPath) {
     return shader;
 }
 
-void addGlyph(GlyphData *glyphs, yyjson_val *glyph, size_t idx, float atlasW, float atlasH) {
+void addGlyph(GlyphData *glyphs, yyjson_val *glyph, usize idx, f32 atlasW, f32 atlasH) {
     yyjson_val *unicode = yyjson_obj_get(glyph, "unicode");
     yyjson_val *advance = yyjson_obj_get(glyph, "advance");
     yyjson_val *planeBounds = yyjson_obj_get(glyph, "planeBounds");
@@ -109,38 +109,33 @@ void addGlyph(GlyphData *glyphs, yyjson_val *glyph, size_t idx, float atlasW, fl
     GlyphData glyphData = {0};
     glyphData.codePoint = yyjson_get_int(unicode);
 
-    if (glyphData.codePoint == 72) {
-        int a = 1;
-    }
-
     yyjson_val *planeLeft = yyjson_obj_get(planeBounds, "left");
     yyjson_val *planeBottom = yyjson_obj_get(planeBounds, "bottom");
     yyjson_val *planeRight = yyjson_obj_get(planeBounds, "right");
     yyjson_val *planeTop = yyjson_obj_get(planeBounds, "top");
     glyphData.planeCenter.x
-        = ((float)yyjson_get_num(planeLeft) + (float)yyjson_get_num(planeRight)) * 0.5f;
+        = ((f32)yyjson_get_num(planeLeft) + (f32)yyjson_get_num(planeRight)) * 0.5f;
     glyphData.planeCenter.y
-        = ((float)yyjson_get_num(planeTop) + (float)yyjson_get_num(planeBottom)) * 0.5f;
+        = ((f32)yyjson_get_num(planeTop) + (f32)yyjson_get_num(planeBottom)) * 0.5f;
     glyphData.planeExtent.x
-        = ((float)yyjson_get_num(planeRight) - (float)yyjson_get_num(planeLeft)) * 0.5f;
+        = ((f32)yyjson_get_num(planeRight) - (f32)yyjson_get_num(planeLeft)) * 0.5f;
     glyphData.planeExtent.y
-        = fabsf((float)yyjson_get_num(planeTop) - (float)yyjson_get_num(planeBottom)) * 0.5f;
+        = fabsf((f32)yyjson_get_num(planeTop) - (f32)yyjson_get_num(planeBottom)) * 0.5f;
 
     yyjson_val *atlasLeft = yyjson_obj_get(atlasBounds, "left");
     yyjson_val *atlasBottom = yyjson_obj_get(atlasBounds, "bottom");
     yyjson_val *atlasRight = yyjson_obj_get(atlasBounds, "right");
     yyjson_val *atlasTop = yyjson_obj_get(atlasBounds, "top");
 
-    float atlasLeftVal = (float)yyjson_get_num(atlasLeft);
-    float atlasRightVal = (float)yyjson_get_num(atlasRight);
+    f32 atlasLeftVal = (f32)yyjson_get_num(atlasLeft);
+    f32 atlasRightVal = (f32)yyjson_get_num(atlasRight);
     glyphData.uvCenter.x = (atlasLeftVal + atlasRightVal) * 0.5f / atlasW;
     glyphData.uvCenter.y
-        = ((float)yyjson_get_num(atlasTop) + (float)yyjson_get_num(atlasBottom)) * 0.5f / atlasH;
+        = ((f32)yyjson_get_num(atlasTop) + (f32)yyjson_get_num(atlasBottom)) * 0.5f / atlasH;
     glyphData.uvExtent.x
-        = ((float)yyjson_get_num(atlasRight) - (float)yyjson_get_num(atlasLeft)) * 0.5f / atlasW;
+        = ((f32)yyjson_get_num(atlasRight) - (f32)yyjson_get_num(atlasLeft)) * 0.5f / atlasW;
     glyphData.uvExtent.y
-        = fabsf((float)yyjson_get_num(atlasTop) - (float)yyjson_get_num(atlasBottom)) * 0.5f
-          / atlasH;
+        = fabsf((f32)yyjson_get_num(atlasTop) - (f32)yyjson_get_num(atlasBottom)) * 0.5f / atlasH;
 
     glyphData.advance = yyjson_get_num(advance);
 
@@ -157,7 +152,7 @@ SdfFont loadSdfFont(const char *fontName) {
         return font;
     }
     char path[256];
-    int pathLen = snprintf(path, sizeof(path), "defaultAssets/fonts/%s.json", fontName);
+    i32 pathLen = snprintf(path, sizeof(path), "defaultAssets/fonts/%s.json", fontName);
     if (pathLen < 0 || pathLen >= sizeof(path)) {
         printf("Too long font name");
         return font;
@@ -181,10 +176,10 @@ SdfFont loadSdfFont(const char *fontName) {
     font.metrics.descender = yyjson_get_num(yyjson_obj_get(metrics, "descender"));
 
     yyjson_val *glyphs = yyjson_obj_get(root, "glyphs");
-    size_t glyphCount = yyjson_arr_size(glyphs);
+    usize glyphCount = yyjson_arr_size(glyphs);
     font.glyphCount = glyphCount;
     font.glyphData = malloc(glyphCount * sizeof(GlyphData));
-    size_t idx, max;
+    usize idx, max;
     yyjson_val *val;
     yyjson_arr_foreach(glyphs, idx, max, val) {
         addGlyph(font.glyphData, val, idx, font.metrics.atlasSize.x, font.metrics.atlasSize.y);
@@ -203,7 +198,7 @@ SdfFont loadSdfFont(const char *fontName) {
     return font;
 }
 
-void initSdf(uint32_t screenWidth, uint32_t screenHeight) {
+void initSdf(u32 screenWidth, u32 screenHeight) {
     g_ctx.sdf = malloc(sizeof(SdfState));
     *g_ctx.sdf = (SdfState){0};
     SdfFont defaultFont = loadSdfFont("FiraSans");
@@ -219,7 +214,7 @@ void initSdf(uint32_t screenWidth, uint32_t screenHeight) {
     renderer->locAtlas = GetShaderLocation(renderer->shader, "uAtlas");
     renderer->locPxRange = GetShaderLocation(renderer->shader, "uPxRange");
 
-    float quad[12] = {
+    f32 quad[12] = {
         -1, -1, 1, -1, 1, 1, -1, -1, 1, 1, -1, 1,
     };
 
@@ -228,17 +223,17 @@ void initSdf(uint32_t screenWidth, uint32_t screenHeight) {
 
     renderer->quadVbo = rlLoadVertexBuffer(quad, sizeof(quad), false);
     rlEnableVertexBuffer(renderer->quadVbo);
-    rlSetVertexAttribute(0, 2, RL_FLOAT, false, 2 * sizeof(float), 0);
+    rlSetVertexAttribute(0, 2, RL_FLOAT, false, 2 * sizeof(f32), 0);
     rlEnableVertexAttribute(0);
 
     renderer->instanceVbo = rlLoadVertexBuffer(NULL, SDF_MAX_INSTANCES * sizeof(SdfInstance), true);
     rlEnableVertexBuffer(renderer->instanceVbo);
-    uint32_t s = sizeof(SdfInstance);
+    usize s = sizeof(SdfInstance);
     rlSetVertexAttribute(1, 4, RL_FLOAT, false, s, offsetof(SdfInstance, center));
     rlSetVertexAttribute(2, 4, RL_FLOAT, false, s, offsetof(SdfInstance, params));
     rlSetVertexAttribute(3, 4, RL_FLOAT, false, s, offsetof(SdfInstance, color));
     rlSetVertexAttribute(4, 4, RL_FLOAT, false, s, offsetof(SdfInstance, intensity));
-    for (int i = 1; i <= 4; i++) {
+    for (usize i = 1; i <= 4; i++) {
         rlEnableVertexAttribute(i);
         rlSetVertexAttributeDivisor(i, 1);
     }
@@ -264,8 +259,8 @@ void flushSdf(SdfCommandBuffer *buffer, Handle fontHandle) {
 
     rlActiveTextureSlot(0);
     rlEnableTexture(fontTexture.id);
-    int unit = 0;
-    float pxRange = font.metrics.distanceRange;
+    i32 unit = 0;
+    f32 pxRange = font.metrics.distanceRange;
 
     rlEnableShader(renderer.shader.id);
 
@@ -360,7 +355,7 @@ void sdfAddUmkaModule(Umka *umka) {
     const char *umSourceFiles[] = {(const char[]){
 #embed "sdf.um"
         , '\0'}};
-    for (int i = 0; i < sizeof(umSourceFiles) / sizeof(umSourceFiles[0]); i++) {
+    for (usize i = 0; i < sizeof(umSourceFiles) / sizeof(umSourceFiles[0]); i++) {
         umkaAddModule(umka, umSourceNames[i], umSourceFiles[i]);
     }
 }

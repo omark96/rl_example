@@ -18,7 +18,7 @@ void inputIsKeyPressed(UmkaStackSlot *params, UmkaStackSlot *result) {
 
     KeyboardKey key = umkaGetParam(params, 0)->intVal;
     bool pressed = IsKeyPressed(key);
-    uint32_t *inputSlot = &g_ctx.inputs.handledKeys[key];
+    u32 *inputSlot = &g_ctx.inputs.handledKeys[key];
     if (*inputSlot == 0) {
         *inputSlot = gameHandle.slot;
     } else if (*inputSlot != gameHandle.slot) {
@@ -29,17 +29,17 @@ void inputIsKeyPressed(UmkaStackSlot *params, UmkaStackSlot *result) {
 }
 
 void inputGetMouseX(UmkaStackSlot *params, UmkaStackSlot *result) {
-    int x = GetMouseX();
+    i32 x = GetMouseX();
     umkaGetResult(params, result)->intVal = x;
 }
 
 void inputGetMouseY(UmkaStackSlot *params, UmkaStackSlot *result) {
-    int y = GetMouseY();
+    i32 y = GetMouseY();
     umkaGetResult(params, result)->intVal = y;
 }
 
 void inputGetMouseWheelMove(UmkaStackSlot *params, UmkaStackSlot *result) {
-    float d = GetMouseWheelMove();
+    f32 d = GetMouseWheelMove();
     umkaGetResult(params, result)->realVal = (double)d;
 }
 
@@ -76,7 +76,7 @@ void inputAddUmkaModule(Umka *umka) {
     const char *umSourceFiles[] = {(const char[]){
 #embed "input.um"
         , '\0'}};
-    for (int i = 0; i < sizeof(umSourceFiles) / sizeof(umSourceFiles[0]); i++) {
+    for (usize i = 0; i < sizeof(umSourceFiles) / sizeof(umSourceFiles[0]); i++) {
         umkaAddModule(umka, umSourceNames[i], umSourceFiles[i]);
     }
 }
