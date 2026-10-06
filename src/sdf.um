@@ -112,7 +112,7 @@ fn flushSdf*(sdfBuffer: ^SdfCommandBuffer) {
 }
 
 fn (buffer: ^SdfCommandBuffer)pushSdf(): ^Instance{
-    if buffer.count > SDF_MAX_INSTANCES {
+    if buffer.count >= SDF_MAX_INSTANCES {
         flushSdf(&state.buffer)
     }
     inst := &state.buffer.instances[state.buffer.count]
