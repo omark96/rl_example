@@ -3,13 +3,13 @@ import (
     "std.um"
  )
 
-type ShapeType = enum {
+type ShapeType* = enum {
     SDF_CIRCLE = 0;
     SDF_ROUNDED_RECTANGLE = 1;
     SDF_TEXT = 2;
 }
 
-type Instance = struct {
+type Instance* = struct {
      center: gfx::Vector2
      extent: gfx::Vector2
      params: gfx::Vector4
@@ -20,7 +20,7 @@ type Instance = struct {
      stroke: real32
 }
 
-type GlyphData = struct {
+type GlyphData* = struct {
     codePoint: uint32
     planeCenter: gfx::Vector2
     planeExtent: gfx::Vector2
@@ -29,11 +29,11 @@ type GlyphData = struct {
     advance: real32
 }
 
-type FontHandle = struct {
+type FontHandle* = struct {
     _: int
 }
 
-type FontMetrics = struct {
+type FontMetrics* = struct {
     lineHeight: real32;
     ascender: real32;
     descender: real32;
@@ -41,20 +41,20 @@ type FontMetrics = struct {
     atlasSize: gfx::Vector2;
 }
 
-type Font = struct {
+type Font* = struct {
     fontHandle: FontHandle
     metrics: FontMetrics
-    glyphs: map[uint32]GlyphData
+    glyphs: map[uint]GlyphData
 }
 
-const SDF_MAX_INSTANCES = 4096
+const SDF_MAX_INSTANCES* = 4096
 
-type SdfCommandBuffer = struct {
+type SdfCommandBuffer* = struct {
     instances: [SDF_MAX_INSTANCES]Instance;
     count: int;
 }
 
-type SdfState = struct {
+type SdfState* = struct {
     buffer: SdfCommandBuffer
     font: ^Font
     textPending: bool
@@ -62,11 +62,11 @@ type SdfState = struct {
     init: bool
 }
 
-var state: SdfState = {}
+var state*: SdfState = {}
 
-fn sdfFontGlyphs(fontHandle: FontHandle): []GlyphData
-fn sdfFontMetrics(fontHandle: FontHandle): FontMetrics
-fn sdfGetFont(fontHandle: FontHandle): Font {
+fn sdfFontGlyphs*(fontHandle: FontHandle): []GlyphData
+fn sdfFontMetrics*(fontHandle: FontHandle): FontMetrics
+fn sdfGetFont*(fontHandle: FontHandle): Font {
     font := Font{}
     font.fontHandle = fontHandle
     font.metrics = sdfFontMetrics(fontHandle)
@@ -76,15 +76,15 @@ fn sdfGetFont(fontHandle: FontHandle): Font {
     return font
 }
 
-fn sdfDefaultFontHandle(): FontHandle
+fn sdfDefaultFontHandle*(): FontHandle
 
-fn _loadFont(fontName: str): FontHandle
+fn _loadFont*(fontName: str): FontHandle
 fn loadFont*(fontName: str): Font {
     fontHandle := _loadFont(fontName)
     return sdfGetFont(fontHandle)
 }
 
-fn _beginSdfMode()
+fn _beginSdfMode*()
 fn beginSdfMode*(font: ^Font = null) {
     _beginSdfMode()
     if font != null {
@@ -100,23 +100,24 @@ fn beginSdfMode*(font: ^Font = null) {
     }
 }
 
-fn _endSdfMode(buffer: ^SdfCommandBuffer, fontHandle: FontHandle)
+fn _endSdfMode*(buffer: ^SdfCommandBuffer, fontHandle: FontHandle)
 fn endSdfMode*() {
     font := state.font^
     _endSdfMode(&state.buffer, font.fontHandle)
 }
 
-fn _flush(sdfBuffer: ^SdfCommandBuffer, fontHandle: FontHandle)
+fn _flush*(sdfBuffer: ^SdfCommandBuffer, fontHandle: FontHandle)
 fn flushSdf*(sdfBuffer: ^SdfCommandBuffer) {
-    _flush(&state.buffer, state.font.fontHandle)
+    _flush(sdfBuffer, state.font.fontHandle)
 }
 
-fn (buffer: ^SdfCommandBuffer)pushSdf(): ^Instance{
+fn (buffer: ^SdfCommandBuffer)pushSdf*(): ^Instance{
     if buffer.count >= SDF_MAX_INSTANCES {
-        flushSdf(&state.buffer)
+        flushSdf(buffer)
     }
-    inst := &state.buffer.instances[state.buffer.count]
-    state.buffer.count += 1
+    inst := &buffer.instances[buffer.count]
+    inst^ = Instance{}
+    buffer.count += 1
     return inst
 }
 
