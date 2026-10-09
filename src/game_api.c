@@ -4,9 +4,24 @@
 #include "input.c"
 #include "sdf.c"
 
-bool initGame(Game *game, const char *name) {
+Handle initGame(const char *name) {
+    Handle gameHandle = gamePoolAdd(&g_ctx.games, (Game){0});
+    Game *game = gamePoolGet(&g_ctx.games, gameHandle);
     game->name = strdup(name);
-    return initUmka(game);
+    game->handle = gameHandle;
+    RenderTexture2D renderTexture = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
+    game->screen = renderTexture2DPoolAdd(&g_ctx.renderTextures, renderTexture);
+    texturePoolAdd(&g_ctx.textures, renderTexture.texture);
+    game->state = STATE_ENABLED;
+    if (strcmp(name, "main") == 0) {
+        g_ctx.rootGame = gameHandle;
+    }
+    if (strcmp(name, "example3") == 0) {
+        game->state = STATE_ACTIVE;
+        game->cursorDisabled = 1;
+    }
+    initUmka(game);
+    return gameHandle;
 }
 
 bool initUmka(Game *game) {
@@ -109,6 +124,10 @@ void drawGame(Handle handle) {
 void handleInput(Handle handle) {
     Game *game = gamePoolGet(&g_ctx.games, handle);
     g_ctx.currentGame = handle;
+
+    if (game->umka == NULL) {
+        return;
+    }
 
     switch (game->state) {
     case STATE_ACTIVE:
@@ -387,8 +406,8 @@ bool reloadGame(Game *curr, long modTime) {
         curr->lastModified = modTime;
         return false;
     }
-    hotReload(curr, &next);
     if (curr->umka) {
+        hotReload(curr, &next);
         umkaFree(curr->umka);
     }
     curr->umka = next.umka;

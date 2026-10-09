@@ -49,35 +49,16 @@ int main() {
     FilePathList gamePaths = LoadDirectoryFilesEx("games", "DIRS*", false);
 
     gameCount = gamePaths.count;
-    printf("Number of games: %d\n", gamePaths.count);
-    printf("First game: %s\n", gamePaths.paths[0] + 6);
 
     texturePoolInit(&g_ctx.textures, LoadTexture("defaultAssets/default_texture.png"));
-    RenderTexture2D defaultRenderTexure = {0};
-    renderTexture2DPoolInit(&g_ctx.renderTextures, defaultRenderTexure);
-    Game defaultGame = {0};
-    gamePoolInit(&g_ctx.games, defaultGame);
+    renderTexture2DPoolInit(&g_ctx.renderTextures, (RenderTexture2D){0});
+    gamePoolInit(&g_ctx.games, (Game){0});
     initSdf(screenWidth, screenHeight);
 
     for (i32 i = 0; i < gameCount; i++) {
         const char *gameName = GetFileName(gamePaths.paths[i]);
-        Handle gameHandle = gamePoolAdd(&g_ctx.games, (Game){0});
-        Game *game = gamePoolGet(&g_ctx.games, gameHandle);
-        game->handle = gameHandle;
+        Handle gameHandle = initGame(gameName);
         gameHandles[i] = gameHandle;
-        g_ctx.currentGame = gameHandle;
-        initGame(game, gameName);
-        RenderTexture2D renderTexture = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
-        game->screen = renderTexture2DPoolAdd(&g_ctx.renderTextures, renderTexture);
-        texturePoolAdd(&g_ctx.textures, renderTexture.texture);
-        game->state = STATE_ENABLED;
-        if (strcmp(gameName, "main") == 0) {
-            g_ctx.rootGame = gameHandle;
-        }
-        if (strcmp(gameName, "example3") == 0) {
-            game->state = STATE_ACTIVE;
-            game->cursorDisabled = 1;
-        }
     }
     for (i32 i = 0; i < gameCount; i++) {
         Game *game = gamePoolGet(&g_ctx.games, gameHandles[i]);
