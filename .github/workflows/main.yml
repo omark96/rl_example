@@ -23,12 +23,15 @@ jobs:
       - name: Verify
         run: emcc -v
       
-      - run: bash build_vendor_emscripten.sh
-      - run: bash build_web.sh
+      - name: Configure
+        run: emcmake cmake -B build-web -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build-web
 
       - uses: actions/upload-pages-artifact@v5.0.0
         with:
-          path: build/bin/web
+          path: build-web/Release
 
       - id: deployment
         uses: actions/deploy-pages@v5.0.1
