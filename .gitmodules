@@ -4,3 +4,6 @@
 [submodule "vendor/umka"]
 	path = vendor/umka
 	url = https://github.com/vtereshkov/umka-lang
+[submodule "vendor/raylib"]
+	path = vendor/raylib
+	url = https://github.com/raysan5/raylib

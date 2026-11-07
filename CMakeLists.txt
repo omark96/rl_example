@@ -29,7 +29,7 @@ target_compile_definitions(umka PRIVATE UMKA_BUILD PUBLIC UMKA_STATIC)
 add_library(yyjson ${CMAKE_CURRENT_SOURCE_DIR}/vendor/yyjson/src/yyjson.c)
 target_include_directories(yyjson PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/vendor/yyjson/src)
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/vendor/raylib-6.0)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/vendor/raylib)
 
 add_executable(main WIN32 ${CMAKE_CURRENT_SOURCE_DIR}/src/main.c)
 target_link_libraries(main PRIVATE umka yyjson raylib)
