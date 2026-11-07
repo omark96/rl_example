@@ -36,6 +36,7 @@ if(WIN32)
 endif()
 
 if(EMSCRIPTEN)
+    set_target_properties(main PROPERTIES OUTPUT_NAME index)
     set(CMAKE_EXECUTABLE_SUFFIX ".html" CACHE INTERNAL "")
     target_compile_definitions(raylib PRIVATE PLATFORM_WEB GRAPHICS_API_OPENGL_ES3)
     target_compile_definitions(main PRIVATE PLATFORM_WEB)
