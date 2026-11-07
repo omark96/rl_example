@@ -44,7 +44,6 @@ int main() {
     const i32 screenHeight = 1080;
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(screenWidth, screenHeight, "_dev raylib basic window");
-    SetTargetFPS(60);
 
     FilePathList gamePaths = LoadDirectoryFilesEx("games", "DIRS*", false);
 
@@ -71,6 +70,7 @@ int main() {
 #ifdef PLATFORM_WEB
     emscripten_set_main_loop(UpdateDrawFrame, 0, 1);
 #else  // PLATFORM_WEB
+    SetTargetFPS(60);
     while (!WindowShouldClose()) {
         UpdateDrawFrame();
     }

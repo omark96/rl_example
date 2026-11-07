@@ -45,7 +45,6 @@ if(EMSCRIPTEN)
     target_link_options(main PRIVATE
         -sUSE_GLFW=3
         -sMIN_WEBGL_VERSION=2
-        -sASYNCIFY
         -sGL_ENABLE_GET_PROC_ADDRESS
         -sALLOW_MEMORY_GROWTH
         -sSTACK_SIZE=5MB
