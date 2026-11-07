@@ -17,6 +17,8 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v6.1.0
+        with:
+          submodules: recursive
 
       - uses: emscripten-core/setup-emsdk@v16
       
