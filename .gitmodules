@@ -7,3 +7,6 @@
 [submodule "vendor/raylib"]
 	path = vendor/raylib
 	url = https://github.com/raysan5/raylib
+[submodule "vendor/box2d"]
+	path = vendor/box2d
+	url = https://github.com/erincatto/box2d.git

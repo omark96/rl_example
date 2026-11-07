@@ -31,6 +31,8 @@ target_include_directories(yyjson PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/vendor/yyjs
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/vendor/raylib)
 
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/vendor/box2d)
+
 add_executable(main WIN32 ${CMAKE_CURRENT_SOURCE_DIR}/src/main.c)
 target_link_libraries(main PRIVATE umka yyjson raylib)
 if(WIN32)
