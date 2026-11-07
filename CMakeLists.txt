@@ -51,7 +51,7 @@ if(EMSCRIPTEN)
         -sSTACK_SIZE=5MB
         "SHELL:--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/games@games"
         "SHELL:--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/defaultAssets@defaultAssets"
-        "SHELL:--shell-file ${CMAKE_CURRENT_SOURCE_DIR}/vendor/raylib-6.0/src/shell.html"
+        "SHELL:--shell-file ${CMAKE_CURRENT_SOURCE_DIR}/vendor/raylib/src/shell.html"
     )
 endif()
     
