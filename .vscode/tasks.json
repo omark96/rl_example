@@ -1,13 +1,35 @@
 {
     "tasks": [
         {
-            "type": "cppbuild",
-            "label": "build debug exe",
-            "command": "${workspaceFolder}/build_debug.bat",
-            "args": [],
+            "type": "shell",
+            "label": "configure debug",
+            "command": "cmake",
+            "args": [
+                "-B",
+                "build",
+                "-G",
+                "Ninja",
+                "-DCMAKE_BUILD_TYPE=Debug"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
+            "label": "build debug exe",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "build"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "dependsOn": [
+                "configure debug"
+            ],
             "problemMatcher": [
                 "$gcc"
             ],
